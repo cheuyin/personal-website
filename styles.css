@@ -1,0 +1,29 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;500&display=swap');
+
+.container {
+    font-family: "Montserrat", Arial, Helvetica, sans-serif;
+    width: max-content;
+    padding: 20px;
+    margin: auto;
+    text-align: center;
+    margin-top: 10%;
+}
+
+h1 {
+    margin-bottom: 20px;
+}
+
+.information {
+    font-weight: 300;
+    margin-bottom: 20px;
+    font-size: 0.8rem;
+}
+
+.links a {
+    text-decoration: none;
+    color: inherit;
+}
+
+.links a:hover {
+    text-decoration: underline
+}
