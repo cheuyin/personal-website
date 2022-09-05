@@ -2,4 +2,4 @@
 
 My personal website.
 
-Link: [www.cheungstanley.com](www.cheungstanley.com)
+Link: [www.cheungstanley.com](http://www.cheungstanley.com/)
