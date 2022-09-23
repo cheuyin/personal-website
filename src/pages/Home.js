@@ -1,15 +1,20 @@
 import React from "react";
 import { LinkedIn, Email, GitHub } from "@material-ui/icons";
+import "../styles/Home.css";
 
 function Home() {
 	return (
 		<div className="home">
 			<div className="about">
 				<h2>Hi, My name is Pedro</h2>
-				<p>Software engineer at The University of British Columbia</p>
-				<LinkedIn />
-				<Email />
-				<GitHub />
+				<p className="prompt">
+					Software engineer at The University of British Columbia
+				</p>
+				<div className="icons">
+					<LinkedIn />
+					<Email />
+					<GitHub />
+				</div>
 			</div>
 			<div className="skills">
 				<h1>Skills</h1>
@@ -30,7 +35,7 @@ function Home() {
 					</li>
 					<li className="item">
 						<h2>Languages</h2>
-						<span></span>
+						<span>JavaScript, Java, Python, C#, C, C++, TypeScript, Go</span>
 					</li>
 				</ol>
 			</div>
