@@ -10,6 +10,9 @@ function ProjectDisplay() {
 		<div className="project">
 			<h1>{project.name}</h1>
 			<img src={project.image} alt="project thumbnail"></img>
+			<p>
+				<b>Skills</b>: {project.skills}
+			</p>
 			<GitHub />
 		</div>
 	);
