@@ -11,7 +11,7 @@ function Footer() {
 				<Facebook />
 				<LinkedIn />
 			</div>
-			<p> &copy; 2022 pedrotech.com</p>
+			<p> &copy; 2022 cheungstanley.com</p>
 		</div>
 	);
 }
