@@ -34,6 +34,11 @@
     gap: 20px;
 }
 
+.home .icons a {
+	text-decoration: none;
+	color: white;
+}
+
 .home .icons svg {
     font-size: 60px;
 }

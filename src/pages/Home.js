@@ -10,11 +10,11 @@ function Home() {
 				<p className="prompt">
 					Software engineer at The University of British Columbia
 				</p>
-				<div className="icons">
-					<LinkedIn />
-					<Email />
-					<GitHub />
-				</div>
+				<address className="icons">
+					<a href="https://www.linkedin.com/in/yinstanleycheung/" target="_blank" rel="noreferrer"><LinkedIn /></a>
+					<a href="mailto: yinstanleycheung@gmail.com"><Email /></a>
+					<a href="https://github.com/cheuyin" target="_blank" rel="noreferrer"><GitHub /></a>
+				</address>
 			</div>
 			<div className="skills">
 				<h1>Skills</h1>
@@ -22,20 +22,18 @@ function Home() {
 					<li className="item">
 						<h2>Frontend</h2>
 						<span>
-							ReactJS, Angular, Redux, HTML, CSS, React Native, Flutter, NPM,
-							Ionic, BootStrap, MaterialUI, Yarn, TailwindCSS, StyledComponents
+							ReactJS, HTML, CSS, MaterialUI
 						</span>
 					</li>
 					<li className="item">
 						<h2>Backend</h2>
 						<span>
-							NodeJS, Java Spring, .NET, ExpressJS, GraphQL, ApolloServer,
-							MySQL, MongoDB, DynamoDB, DigitalOcean, AWS S3, MS SQL
+							NodeJS, ExpressJS, MongoDB
 						</span>
 					</li>
 					<li className="item">
 						<h2>Languages</h2>
-						<span>JavaScript, Java, Python, C#, C, C++, TypeScript, Go</span>
+						<span>JavaScript, Python</span>
 					</li>
 				</ol>
 			</div>
