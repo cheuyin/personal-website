@@ -1,17 +1,75 @@
 ---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import Prompt from '../components/Prompt.astro';
+import ProjectCard from '../components/ProjectCard.astro';
+import PostRow from '../components/PostRow.astro';
+import { site, projects, posts } from '../data/site';
 
+const latestPosts = posts.slice(0, 3);
+
+const contactLinks = [
+	{ key: 'GITHUB', value: 'github.com/cheuyin', href: site.links.github },
+	{ key: 'LINKEDIN', value: 'linkedin.com/in/yinstanleycheung', href: site.links.linkedin },
+	{ key: 'EMAIL', value: 'yinstanleycheung@gmail.com', href: site.links.email },
+] as const;
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
-</html>
+<BaseLayout title={site.name} description={site.tagline}>
+	<Header slot="header" currentPath="/" />
+
+	<div class="cmd">
+		<Prompt command="whoami" />
+		<p class="output output--accent">
+			{site.fullName}<span class="cursor">█</span>
+		</p>
+	</div>
+
+	<div class="cmd">
+		<Prompt command="cat about.txt" />
+		<p class="output">{site.role}</p>
+		<p class="output output--muted">{site.tagline}</p>
+	</div>
+
+	<div class="cmd">
+		<Prompt command="cat now.txt" />
+		<p class="output">{site.now}</p>
+	</div>
+
+	<div class="cmd">
+		<Prompt command="ls projects/" />
+		<p class="output output--comment"># hover a directory for man page</p>
+		<ul class="dir-list">
+			{projects.map((project) => <ProjectCard project={project} />)}
+		</ul>
+	</div>
+
+	<div class="cmd">
+		<Prompt command="ls writing/ --recent -3" />
+		<div class="file-list">
+			{latestPosts.map((post) => <PostRow post={post} />)}
+		</div>
+		<p class="output output--comment" style="margin-top: 0.75rem">
+			→ <a class="term-link" href="/writing">cd writing</a> for full index
+		</p>
+	</div>
+
+	<div class="cmd">
+		<Prompt command="cat contact.env" />
+		<ul class="env-block">
+			{
+				contactLinks.map(({ key, value, href }) => (
+					<li class="env-row">
+						<span class="env-row__key">{key}</span>
+						<a href={href} target={href.startsWith('mailto') ? undefined : '_blank'} rel={href.startsWith('mailto') ? undefined : 'noreferrer'}>
+							"{value}"
+						</a>
+					</li>
+				))
+			}
+		</ul>
+	</div>
+
+	<Footer slot="footer" path="~" />
+</BaseLayout>

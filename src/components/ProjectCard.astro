@@ -1,0 +1,34 @@
+---
+import type { Project } from '../data/site';
+
+interface Props {
+	project: Project;
+}
+
+const { project } = Astro.props;
+---
+
+<li class="dir-list__item">
+	<a
+		class="dir-link"
+		href={project.href}
+		target="_blank"
+		rel="noreferrer"
+	>
+		{project.dirname}/
+	</a>
+	<div class="man-page" role="tooltip">
+		<div class="man-page__section">
+			<p class="man-page__heading">Name</p>
+			<p class="man-page__text">{project.dirname} — {project.title}</p>
+		</div>
+		<div class="man-page__section">
+			<p class="man-page__heading">Description</p>
+			<p class="man-page__text">{project.summary}</p>
+		</div>
+		<div class="man-page__section">
+			<p class="man-page__heading">Synopsis</p>
+			<p class="man-page__text">{project.href.replace('https://', '')}</p>
+		</div>
+	</div>
+</li>

@@ -1,0 +1,22 @@
+---
+import type { Post } from '../data/site';
+
+interface Props {
+	post: Post;
+}
+
+const { post } = Astro.props;
+const filename = `${post.slug}.md`;
+---
+
+<a class="file-row" href={`/writing/${post.slug}`}>
+	<div class="file-row__head">
+		<span class="file-row__perms">-rw-r--r--</span>
+		<span class="file-row__date">{post.date}</span>
+		<span class="file-row__name">{filename}</span>
+	</div>
+	<p class="file-row__summary">{post.summary}</p>
+	<div class="file-row__tags">
+		{post.tags.map((tag) => <span class="tag">{tag}</span>)}
+	</div>
+</a>

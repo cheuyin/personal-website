@@ -1,0 +1,38 @@
+---
+import { site } from '../data/site';
+
+interface Props {
+	currentPath: '/' | '/writing';
+	filePath?: string;
+}
+
+const { currentPath, filePath } = Astro.props;
+
+const links = [
+	{ href: '/', command: 'cd ~' },
+	{ href: '/writing', command: 'cd writing' },
+] as const;
+
+const titlePath = filePath ?? (currentPath === '/' ? '~' : '~/writing');
+const shellPrompt = `${site.shell.user}@${site.shell.host}`;
+---
+
+<header>
+	<div class="terminal__titlebar">
+		<div class="terminal__controls" aria-hidden="true">
+			<span class="terminal__dot terminal__dot--red"></span>
+			<span class="terminal__dot terminal__dot--amber"></span>
+			<span class="terminal__dot terminal__dot--green"></span>
+		</div>
+		<span class="terminal__title">{shellPrompt}: {titlePath} — bash</span>
+	</div>
+	<nav class="terminal__nav" aria-label="Primary">
+		{
+			links.map(({ href, command }) => (
+				<a href={href} aria-current={currentPath === href ? 'page' : undefined}>
+					$ {command}
+				</a>
+			))
+		}
+	</nav>
+</header>

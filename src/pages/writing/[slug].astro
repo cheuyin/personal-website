@@ -1,0 +1,62 @@
+---
+import { getCollection, render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+import Prompt from '../../components/Prompt.astro';
+
+export async function getStaticPaths() {
+	const posts = await getCollection('writing');
+	return posts.map((post) => ({
+		params: { slug: post.id },
+		props: { post },
+	}));
+}
+
+const { post } = Astro.props;
+const { Content } = await render(post);
+const filename = `${post.id}.md`;
+const date = post.data.date.toISOString().slice(0, 10);
+---
+
+<BaseLayout title={post.data.title} description={post.data.summary}>
+	<Header slot="header" currentPath="/writing" filePath={`~/writing/${filename}`} />
+
+	<div class="cmd">
+		<Prompt path="~/writing" command={`less ${filename}`} />
+		<p class="output output--comment"># {post.data.summary}</p>
+	</div>
+
+	<article class="post">
+		<header class="post__meta">
+			<h1 class="post__title">{post.data.title}</h1>
+			<dl class="post__frontmatter">
+				<div class="post__field">
+					<dt>date</dt>
+					<dd>{date}</dd>
+				</div>
+				<div class="post__field">
+					<dt>tags</dt>
+					<dd>
+						{post.data.tags.map((tag) => (
+							<span class="tag">{tag}</span>
+						))}
+					</dd>
+				</div>
+			</dl>
+		</header>
+
+		<div class="post-body">
+			<Content />
+		</div>
+	</article>
+
+	<div class="cmd">
+		<Prompt path="~/writing" command="cd .." />
+		<p class="output output--comment">
+			→ <a class="term-link" href="/writing">back to writing index</a>
+		</p>
+	</div>
+
+	<Footer slot="footer" path="~/writing" />
+</BaseLayout>

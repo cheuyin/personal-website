@@ -1,0 +1,44 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+import Prompt from '../../components/Prompt.astro';
+import PostRow from '../../components/PostRow.astro';
+import { posts } from '../../data/site';
+---
+
+<BaseLayout
+	title="Writing"
+	description="Notes on projects, debugging, and things I'm still figuring out."
+>
+	<Header slot="header" currentPath="/writing" />
+
+	<div class="cmd">
+		<Prompt command="cd writing" />
+		<p class="output output--comment"># entered ~/writing</p>
+	</div>
+
+	<div class="cmd">
+		<Prompt path="~/writing" command="head -n 2 README.md" />
+		<p class="output">Notes on projects, debugging, and things I'm still figuring out.</p>
+		<p class="output output--muted">
+			Each entry will become its own page. For now, these are placeholders.
+		</p>
+	</div>
+
+	<div class="cmd">
+		<Prompt path="~/writing" command="ls -1" />
+		<div class="file-list">
+			{posts.map((post) => <PostRow post={post} />)}
+		</div>
+	</div>
+
+	<div class="cmd">
+		<Prompt path="~/writing" command="cd ~" />
+		<p class="output output--comment">
+			→ <a class="term-link" href="/">return home</a>
+		</p>
+	</div>
+
+	<Footer slot="footer" path="~/writing" />
+</BaseLayout>

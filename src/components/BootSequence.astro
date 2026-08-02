@@ -1,0 +1,124 @@
+---
+import { site } from '../data/site';
+
+const shellPrompt = `${site.shell.user}@${site.shell.host}`;
+const homeDir = `/home/${site.shell.user}`;
+---
+
+<div class="boot" id="boot" aria-live="polite" aria-label="System boot sequence">
+	<div class="boot__screen">
+		<div class="boot__log" id="boot-log"></div>
+		<div class="boot__bar" aria-hidden="true">
+			<div class="boot__bar-fill" id="boot-bar"></div>
+		</div>
+		<p class="boot__hint" id="boot-hint" hidden>press any key to skip</p>
+	</div>
+</div>
+
+<script define:vars={{ shellPrompt, shellUser: site.shell.user, homeDir }}>
+	const STORAGE_KEY = 'cheuyin-boot-seen';
+
+	const bootLines = [
+		'POST check .................... OK',
+		'BIOS v2.7.1 ................... OK',
+		`Mounting ${homeDir} ........ OK`,
+		'Loading profile ............... OK',
+		'Starting bash ................. OK',
+		'',
+		`${shellPrompt} login: ${shellUser}`,
+		'Session started.',
+	];
+
+	function finishBoot() {
+		const root = document.documentElement;
+		const boot = document.getElementById('boot');
+
+		root.classList.remove('boot-active');
+		root.classList.add('boot-ready');
+		boot?.classList.add('is-done');
+
+		try {
+			sessionStorage.setItem(STORAGE_KEY, '1');
+		} catch {
+			/* private browsing */
+		}
+
+		window.setTimeout(() => boot?.remove(), 650);
+	}
+
+	function skipBoot() {
+		document.removeEventListener('keydown', skipBoot);
+		document.removeEventListener('click', skipBoot);
+		finishBoot();
+	}
+
+	function runBoot() {
+		const root = document.documentElement;
+		const log = document.getElementById('boot-log');
+		const bar = document.getElementById('boot-bar');
+		const hint = document.getElementById('boot-hint');
+
+		if (!log || !bar) {
+			finishBoot();
+			return;
+		}
+
+		root.classList.add('boot-active');
+
+		window.setTimeout(() => {
+			if (hint) hint.hidden = false;
+		}, 400);
+
+		document.addEventListener('keydown', skipBoot, { once: true });
+		document.addEventListener('click', skipBoot, { once: true });
+
+		let lineIndex = 0;
+		const lineDelay = 120;
+		const progressSteps = bootLines.filter((line) => line.length > 0).length + 1;
+
+		function appendLine(text) {
+			const line = document.createElement('p');
+			line.className = 'boot__line';
+			line.textContent = text || '\u00A0';
+			log.appendChild(line);
+		}
+
+		function tickProgress(step) {
+			bar.style.width = `${Math.round((step / progressSteps) * 100)}%`;
+		}
+
+		function nextLine() {
+			if (lineIndex < bootLines.length) {
+				appendLine(bootLines[lineIndex]);
+				if (bootLines[lineIndex]) {
+					tickProgress(lineIndex + 1);
+				}
+				lineIndex += 1;
+				window.setTimeout(nextLine, bootLines[lineIndex - 1] === '' ? 180 : lineDelay);
+				return;
+			}
+
+			appendLine('');
+			appendLine('Welcome. Scroll to explore.');
+			tickProgress(progressSteps);
+
+			window.setTimeout(finishBoot, 700);
+		}
+
+		nextLine();
+	}
+
+	function initBoot() {
+		const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+		const root = document.documentElement;
+
+		if (root.classList.contains('boot-skip') || reducedMotion) {
+			finishBoot();
+			return;
+		}
+
+		runBoot();
+	}
+
+	initBoot();
+</script>
