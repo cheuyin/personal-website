@@ -11,8 +11,6 @@ export const site = {
 	now: 'Seeking Fall 2026 and Winter 2027 internships.',
 	interests: [
 		'Backend engineering',
-		'AI engineering',
-		'Agentic coding',
 		'AI agent engineering',
 	],
 	links: {

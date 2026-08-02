@@ -3,7 +3,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import PostRow from '../components/PostRow.astro';
-import PhosphorHero from '../components/PhosphorHero.astro';
+import HexDecodeHero from '../components/HexDecodeHero.astro';
 import { site, getWritingPosts } from '../data/site';
 
 const posts = await getWritingPosts();
@@ -19,7 +19,7 @@ const contactLinks = [
 <BaseLayout title={site.name} description={site.tagline}>
 	<Header slot="header" currentPath="/" />
 
-	<PhosphorHero />
+	<HexDecodeHero />
 
 	<section class="section">
 		<h2 class="section__title">Now</h2>

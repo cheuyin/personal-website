@@ -1,0 +1,223 @@
+---
+import { site } from '../data/site';
+
+const payload = `${site.fullName}\n${site.role}\n${site.tagline}\n`;
+---
+
+<script is:inline>
+	(function () {
+		try {
+			var seen = sessionStorage.getItem('cheuyin-hex-seen') === '1';
+			var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+			if (!seen && !reduced) {
+				document.documentElement.classList.add('hex-animate');
+			}
+		} catch (e) {
+			/* private browsing */
+		}
+	})();
+</script>
+
+<section class="section hex-hero" id="hex-hero">
+	<div class="hex-hero__panel" id="hex-panel">
+		<p class="hex-hero__cmd">$ xxd -g 1 ~/identity.bin</p>
+		<pre class="hex-hero__dump" id="hex-dump" aria-live="polite"></pre>
+		<p class="hex-hero__hint" id="hex-hint" hidden>click or press any key to skip</p>
+	</div>
+
+	<div class="hex-hero__content" id="hex-content">
+		<h1 class="hero__name">{site.fullName}</h1>
+		<p class="hero__role">{site.role}</p>
+		<p class="hero__tagline">{site.tagline}</p>
+	</div>
+</section>
+
+<noscript>
+	<style>
+		#hex-panel {
+			display: none !important;
+		}
+
+		#hex-content {
+			opacity: 1 !important;
+			visibility: visible !important;
+			transform: none !important;
+		}
+	</style>
+</noscript>
+
+<script define:vars={{ payload }}>
+	const STORAGE_KEY = 'cheuyin-hex-seen';
+	const BYTE_MS = 22;
+	const HOLD_MS = 450;
+
+	const root = document.getElementById('hex-hero');
+	const panel = document.getElementById('hex-panel');
+	const dump = document.getElementById('hex-dump');
+	const hint = document.getElementById('hex-hint');
+
+	if (!root || !dump) {
+		/* static fallback */
+	} else {
+		const prefersReducedMotion = window.matchMedia(
+			'(prefers-reduced-motion: reduce)',
+		).matches;
+
+		let seen = false;
+		try {
+			seen = sessionStorage.getItem(STORAGE_KEY) === '1';
+		} catch {
+			/* private browsing */
+		}
+
+		if (prefersReducedMotion || seen) {
+			finish(true);
+		} else {
+			startDecode();
+		}
+	}
+
+	function randomHex() {
+		return Math.floor(Math.random() * 256)
+			.toString(16)
+			.padStart(2, '0');
+	}
+
+	function buildCells(text) {
+		const bytes = [...new TextEncoder().encode(text)];
+		return bytes.map((value, index) => {
+			const char =
+				value >= 32 && value < 127 ? String.fromCharCode(value) : '.';
+			return {
+				index,
+				value,
+				hex: value.toString(16).padStart(2, '0'),
+				char,
+				displayHex: randomHex(),
+				resolved: false,
+			};
+		});
+	}
+
+	function renderDump(cells, activeIndex) {
+		const rowCount = Math.ceil(cells.length / 16);
+		let output = '';
+
+		for (let row = 0; row < rowCount; row++) {
+			const offset = row * 16;
+			const hexLeft = [];
+			const hexRight = [];
+			let ascii = '';
+
+			for (let col = 0; col < 16; col++) {
+				const cell = cells[offset + col];
+				const hexSlot = col < 8 ? hexLeft : hexRight;
+
+				if (!cell) {
+					hexSlot.push('  ');
+					ascii += ' ';
+					continue;
+				}
+
+				const isActive = cell.index === activeIndex && !cell.resolved;
+				const hex = cell.resolved ? cell.hex : cell.displayHex;
+				hexSlot.push(hex);
+
+				if (cell.resolved) {
+					ascii += cell.char;
+				} else if (isActive) {
+					ascii += '▌';
+				} else {
+					ascii += '.';
+				}
+			}
+
+			const addr = offset.toString(16).padStart(8, '0');
+			output += `${addr}  ${hexLeft.join(' ')}  ${hexRight.join(' ')}  |${ascii}|\n`;
+		}
+
+		dump.textContent = output.trimEnd();
+	}
+
+	function finish(instant = false) {
+		document.documentElement.classList.remove('hex-animate');
+
+		root?.classList.remove('is-decoding');
+		root?.classList.add('is-decoded');
+
+		if (instant) {
+			panel?.remove();
+		} else {
+			window.setTimeout(() => panel?.remove(), 550);
+		}
+
+		try {
+			sessionStorage.setItem(STORAGE_KEY, '1');
+		} catch {
+			/* private browsing */
+		}
+	}
+
+	function startDecode() {
+		const cells = buildCells(payload);
+		let index = 0;
+		let byteTimer = 0;
+		let flickerTimer = 0;
+		let done = false;
+
+		root?.classList.add('is-decoding');
+		renderDump(cells, 0);
+
+		window.setTimeout(() => {
+			if (hint) hint.hidden = false;
+		}, 300);
+
+		function stopTimers() {
+			window.clearTimeout(byteTimer);
+			window.clearInterval(flickerTimer);
+		}
+
+		function onSkipInteractive() {
+			if (done) return;
+			done = true;
+			stopTimers();
+			document.removeEventListener('keydown', onSkipInteractive);
+			root?.removeEventListener('click', onSkipInteractive);
+			finish(true);
+		}
+
+		document.addEventListener('keydown', onSkipInteractive);
+		root?.addEventListener('click', onSkipInteractive);
+
+		flickerTimer = window.setInterval(() => {
+			if (done) return;
+			for (const cell of cells) {
+				if (!cell.resolved && Math.random() > 0.55) {
+					cell.displayHex = randomHex();
+				}
+			}
+			renderDump(cells, index);
+		}, 90);
+
+		function resolveNext() {
+			if (done) return;
+
+			if (index >= cells.length) {
+				done = true;
+				stopTimers();
+				renderDump(cells, -1);
+				document.removeEventListener('keydown', onSkipInteractive);
+				root?.removeEventListener('click', onSkipInteractive);
+				window.setTimeout(() => finish(false), HOLD_MS);
+				return;
+			}
+
+			cells[index].resolved = true;
+			renderDump(cells, index + 1);
+			index += 1;
+			byteTimer = window.setTimeout(resolveNext, BYTE_MS);
+		}
+
+		byteTimer = window.setTimeout(resolveNext, BYTE_MS);
+	}
+</script>
