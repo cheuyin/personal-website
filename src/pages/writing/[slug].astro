@@ -3,7 +3,6 @@ import { getCollection, render } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Header from '../../components/Header.astro';
 import Footer from '../../components/Footer.astro';
-import Prompt from '../../components/Prompt.astro';
 
 export async function getStaticPaths() {
 	const posts = await getCollection('writing');
@@ -15,35 +14,39 @@ export async function getStaticPaths() {
 
 const { post } = Astro.props;
 const { Content } = await render(post);
-const filename = `${post.id}.md`;
 const date = post.data.date.toISOString().slice(0, 10);
 ---
 
 <BaseLayout title={post.data.title} description={post.data.summary}>
-	<Header slot="header" currentPath="/writing" filePath={`~/writing/${filename}`} />
-
-	<div class="cmd">
-		<Prompt path="~/writing" command={`less ${filename}`} />
-		<p class="output output--comment"># {post.data.summary}</p>
-	</div>
+	<Header slot="header" currentPath="/writing" pageLabel={post.data.title} />
 
 	<article class="post">
-		<header class="post__meta">
+		<header class="post__header">
+			<p class="post__back">
+				<a class="text-link" href="/writing">← Writing</a>
+			</p>
 			<h1 class="post__title">{post.data.title}</h1>
-			<dl class="post__frontmatter">
+			<dl class="post__meta">
 				<div class="post__field">
-					<dt>date</dt>
-					<dd>{date}</dd>
-				</div>
-				<div class="post__field">
-					<dt>tags</dt>
+					<dt>Date</dt>
 					<dd>
-						{post.data.tags.map((tag) => (
-							<span class="tag">{tag}</span>
-						))}
+						<time datetime={date}>{date}</time>
 					</dd>
 				</div>
+				{
+					post.data.tags.length > 0 && (
+						<div class="post__field">
+							<dt>Tags</dt>
+							<dd>
+								{post.data.tags.map((tag) => (
+									<span class="tag">{tag}</span>
+								))}
+							</dd>
+						</div>
+					)
+				}
 			</dl>
+			<p class="post__summary">{post.data.summary}</p>
 		</header>
 
 		<div class="post-body">
@@ -51,12 +54,5 @@ const date = post.data.date.toISOString().slice(0, 10);
 		</div>
 	</article>
 
-	<div class="cmd">
-		<Prompt path="~/writing" command="cd .." />
-		<p class="output output--comment">
-			→ <a class="term-link" href="/writing">back to writing index</a>
-		</p>
-	</div>
-
-	<Footer slot="footer" path="~/writing" />
+	<Footer slot="footer" />
 </BaseLayout>

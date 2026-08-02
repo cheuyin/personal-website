@@ -1,0 +1,25 @@
+---
+import type { Experience } from '../data/site';
+
+interface Props {
+	experience: Experience;
+}
+
+const { experience } = Astro.props;
+---
+
+<article class="experience-card">
+	<div class="experience-card__head">
+		<h3 class="experience-card__title">{experience.role}</h3>
+		<p class="experience-card__company">
+			{experience.company} · {experience.location}
+		</p>
+		<p class="experience-card__meta">
+			<time datetime={experience.startDate}>{experience.dates}</time>
+			<span class="experience-card__stack">{experience.stack}</span>
+		</p>
+	</div>
+	<ul class="experience-card__highlights">
+		{experience.highlights.map((item) => <li>{item}</li>)}
+	</ul>
+</article>

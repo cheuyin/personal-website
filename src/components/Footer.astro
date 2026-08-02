@@ -1,17 +1,9 @@
 ---
 import { site } from '../data/site';
-
-interface Props {
-	path?: string;
-}
-
-const { path = '~' } = Astro.props;
-const { user, host } = site.shell;
 ---
 
 <footer class="terminal__footer">
-	<p class="prompt">
-		<span class="prompt__user">{user}@{host}</span>:<span class="prompt__path">{path}</span>$ <span
-			class="cursor">█</span>
+	<p class="footer__text">
+		© {new Date().getFullYear()} {site.fullName}
 	</p>
 </footer>

@@ -2,9 +2,10 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Header from '../../components/Header.astro';
 import Footer from '../../components/Footer.astro';
-import Prompt from '../../components/Prompt.astro';
 import PostRow from '../../components/PostRow.astro';
-import { posts } from '../../data/site';
+import { getWritingPosts } from '../../data/site';
+
+const posts = await getWritingPosts();
 ---
 
 <BaseLayout
@@ -13,32 +14,19 @@ import { posts } from '../../data/site';
 >
 	<Header slot="header" currentPath="/writing" />
 
-	<div class="cmd">
-		<Prompt command="cd writing" />
-		<p class="output output--comment"># entered ~/writing</p>
-	</div>
-
-	<div class="cmd">
-		<Prompt path="~/writing" command="head -n 2 README.md" />
-		<p class="output">Notes on projects, debugging, and things I'm still figuring out.</p>
-		<p class="output output--muted">
-			Each entry will become its own page. For now, these are placeholders.
+	<section class="section hero hero--compact">
+		<h1 class="hero__name">Writing</h1>
+		<p class="hero__tagline">
+			Notes on projects, debugging, and things I'm still figuring out.
 		</p>
-	</div>
+	</section>
 
-	<div class="cmd">
-		<Prompt path="~/writing" command="ls -1" />
-		<div class="file-list">
+	<section class="section">
+		<h2 class="section__title">Posts</h2>
+		<div class="post-list">
 			{posts.map((post) => <PostRow post={post} />)}
 		</div>
-	</div>
+	</section>
 
-	<div class="cmd">
-		<Prompt path="~/writing" command="cd ~" />
-		<p class="output output--comment">
-			→ <a class="term-link" href="/">return home</a>
-		</p>
-	</div>
-
-	<Footer slot="footer" path="~/writing" />
+	<Footer slot="footer" />
 </BaseLayout>

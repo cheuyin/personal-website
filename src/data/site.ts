@@ -5,16 +5,49 @@ export const site = {
 		user: 'cheuyin',
 		host: 'local',
 	},
-	role: 'Software engineering student at UBC',
+	role: '4th year CS student at UBC',
 	tagline:
-		'Building real projects, writing about what I learn, and getting better at the craft of software.',
-	now: 'Looking for Summer 2027 SWE internships. Rebuilding this site and shipping one project write-up per month.',
+		'Interested in backend engineering, AI engineering, and building agentic systems.',
+	now: 'Seeking Fall 2026 and Winter 2027 internships.',
+	interests: [
+		'Backend engineering',
+		'AI engineering',
+		'Agentic coding',
+		'AI agent engineering',
+	],
 	links: {
 		github: 'https://github.com/cheuyin',
 		linkedin: 'https://www.linkedin.com/in/yinstanleycheung/',
 		email: 'mailto:yinstanleycheung@gmail.com',
 	},
 } as const;
+
+export type Experience = {
+	role: string;
+	company: string;
+	location: string;
+	dates: string;
+	startDate: string;
+	stack: string;
+	highlights: string[];
+};
+
+export const experience: Experience[] = [
+	{
+		role: 'Software Engineer Intern',
+		company: 'VoltSafe Inc.',
+		location: 'Vancouver, BC',
+		dates: 'Jan 2024 – Jul 2024',
+		startDate: '2024-01',
+		stack: 'TypeScript · Express.js · PostgreSQL · AWS · React',
+		highlights: [
+			'Built end-to-end RBAC with Cognito, Express, and PostgreSQL for an internal admin dashboard.',
+			'Dockerized a Prometheus monitoring stack tracking 7+ EC2 servers in real time.',
+			'Shipped S3-backed file storage for a marina app, cutting bandwidth costs.',
+			'Cut bundle size 22% via Lighthouse analysis and asset pruning.',
+		],
+	},
+];
 
 export type Project = {
 	title: string;
@@ -34,12 +67,12 @@ export const projects: Project[] = [
 		href: 'https://github.com/cheuyin/createyourstory.ai',
 	},
 	{
-		title: 'UBC Course Explorer',
-		dirname: 'ubc-course-explorer',
+		title: 'Local AI Coding Agent',
+		dirname: 'ai-agent-python',
 		kind: 'Project',
 		summary:
-			'Full-stack data visualization for UBC course and campus facilities history — TypeScript, search, and section drill-down.',
-		href: 'https://github.com/cheuyin/ubc-course-explorer',
+			'Terminal-based coding agent using Gemini — multi-turn tool loop to read, write, and run files in a sandboxed workspace.',
+		href: 'https://github.com/cheuyin/ai-agent-python',
 	},
 	{
 		title: 'AutoDater',
@@ -59,27 +92,16 @@ export type Post = {
 	tags: string[];
 };
 
-export const posts: Post[] = [
-	{
-		slug: 'how-i-built-node-films',
-		title: 'How I built Node Films',
-		date: '2026-03-18',
-		summary:
-			'Project walkthrough: problem, approach, tradeoffs, and what I would do differently.',
-		tags: ['project', 'learning', 'node'],
-	},
-	{
-		slug: 'what-broke-when-i-tried-y',
-		title: 'What broke when I tried Y',
-		date: '2026-02-04',
-		summary: 'Debugging story that shows how I think under uncertainty.',
-		tags: ['debugging'],
-	},
-	{
-		slug: 'notes-on-z',
-		title: 'Notes on Z',
-		date: '2026-01-12',
-		summary: 'Short technical notes on a topic I care about.',
-		tags: ['notes'],
-	},
-];
+export async function getWritingPosts(): Promise<Post[]> {
+	const { getCollection } = await import('astro:content');
+	const entries = await getCollection('writing');
+	return entries
+		.map((entry) => ({
+			slug: entry.id,
+			title: entry.data.title,
+			date: entry.data.date.toISOString().slice(0, 10),
+			summary: entry.data.summary,
+			tags: entry.data.tags,
+		}))
+		.sort((a, b) => b.date.localeCompare(a.date));
+}

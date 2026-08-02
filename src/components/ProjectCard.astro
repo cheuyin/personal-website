@@ -8,27 +8,12 @@ interface Props {
 const { project } = Astro.props;
 ---
 
-<li class="dir-list__item">
-	<a
-		class="dir-link"
-		href={project.href}
-		target="_blank"
-		rel="noreferrer"
-	>
-		{project.dirname}/
+<article class="project-card">
+	<h3 class="project-card__title">
+		<a href={project.href} target="_blank" rel="noreferrer">{project.title}</a>
+	</h3>
+	<p class="project-card__summary">{project.summary}</p>
+	<a class="project-card__link" href={project.href} target="_blank" rel="noreferrer">
+		View on GitHub →
 	</a>
-	<div class="man-page" role="tooltip">
-		<div class="man-page__section">
-			<p class="man-page__heading">Name</p>
-			<p class="man-page__text">{project.dirname} — {project.title}</p>
-		</div>
-		<div class="man-page__section">
-			<p class="man-page__heading">Description</p>
-			<p class="man-page__text">{project.summary}</p>
-		</div>
-		<div class="man-page__section">
-			<p class="man-page__heading">Synopsis</p>
-			<p class="man-page__text">{project.href.replace('https://', '')}</p>
-		</div>
-	</div>
-</li>
+</article>

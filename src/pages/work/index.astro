@@ -1,0 +1,36 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+import ExperienceCard from '../../components/ExperienceCard.astro';
+import ProjectCard from '../../components/ProjectCard.astro';
+import { experience, projects } from '../../data/site';
+---
+
+<BaseLayout
+	title="Work"
+	description="Experience and projects."
+>
+	<Header slot="header" currentPath="/work" />
+
+	<section class="section hero hero--compact">
+		<h1 class="hero__name">Work</h1>
+		<p class="hero__tagline">Experience and projects.</p>
+	</section>
+
+	<section class="section">
+		<h2 class="section__title">Experience</h2>
+		<div class="experience-list">
+			{experience.map((entry) => <ExperienceCard experience={entry} />)}
+		</div>
+	</section>
+
+	<section class="section">
+		<h2 class="section__title">Projects</h2>
+		<div class="project-list">
+			{projects.map((project) => <ProjectCard project={project} />)}
+		</div>
+	</section>
+
+	<Footer slot="footer" />
+</BaseLayout>
