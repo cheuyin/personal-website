@@ -12,6 +12,7 @@
 	--blue: #5cadff;
 
 	--font: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+	--font-prose: 'IBM Plex Sans', 'Segoe UI', sans-serif;
 	--page: 52rem;
 	--lh: 1.55;
 
@@ -640,9 +641,10 @@ html.hex-animate .hex-hero:not(.is-decoded) .hex-hero__content {
 .post__summary {
 	margin: 0;
 	max-width: 40rem;
-	font-size: 0.875rem;
+	font-family: var(--font-prose);
+	font-size: 1rem;
 	color: var(--muted);
-	line-height: 1.6;
+	line-height: 1.65;
 }
 
 .post__meta {
@@ -681,9 +683,10 @@ html.hex-animate .hex-hero:not(.is-decoded) .hex-hero__content {
 }
 
 .post-body {
+	font-family: var(--font-prose);
 	color: var(--text);
-	font-size: 0.875rem;
-	line-height: 1.65;
+	font-size: 1.0625rem;
+	line-height: 1.7;
 }
 
 .post-body > :first-child {
@@ -696,16 +699,18 @@ html.hex-animate .hex-hero:not(.is-decoded) .hex-hero__content {
 
 .post-body h2 {
 	margin: 1.75rem 0 0.75rem;
-	font-size: 1rem;
-	font-weight: 500;
+	font-size: 1.125rem;
+	font-weight: 600;
 	color: var(--amber);
+	line-height: 1.35;
 }
 
 .post-body h3 {
 	margin: 1.25rem 0 0.5rem;
-	font-size: 0.9375rem;
-	font-weight: 500;
+	font-size: 1.0625rem;
+	font-weight: 600;
 	color: var(--text);
+	line-height: 1.4;
 }
 
 .post-body p {
@@ -742,12 +747,13 @@ html.hex-animate .hex-hero:not(.is-decoded) .hex-hero__content {
 
 .post-body strong {
 	color: var(--text);
-	font-weight: 500;
+	font-weight: 600;
 }
 
 .post-body code {
 	padding: 0.1rem 0.35rem;
-	font-size: 0.8125rem;
+	font-family: var(--font);
+	font-size: 0.875rem;
 	color: var(--green);
 	background: rgb(0 0 0 / 35%);
 	border: 1px solid var(--border);
@@ -758,6 +764,7 @@ html.hex-animate .hex-hero:not(.is-decoded) .hex-hero__content {
 	margin: 0 0 1rem;
 	padding: 0.875rem 1rem;
 	overflow-x: auto;
+	font-family: var(--font);
 	background: #000;
 	border: 1px solid var(--border);
 	border-left: 3px solid var(--green);
@@ -766,6 +773,7 @@ html.hex-animate .hex-hero:not(.is-decoded) .hex-hero__content {
 
 .post-body pre code {
 	padding: 0;
+	font-family: inherit;
 	color: var(--text);
 	background: none;
 	border: none;
