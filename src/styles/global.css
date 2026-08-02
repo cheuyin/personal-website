@@ -56,19 +56,12 @@ a {
 	padding: 1rem;
 }
 
-.terminal-window {
+.site-frame {
 	display: flex;
 	flex-direction: column;
 	flex: 1;
 	width: min(var(--page), 100%);
 	margin-inline: auto;
-	border: 1px solid var(--border);
-	border-radius: 6px;
-	background: var(--surface);
-	box-shadow:
-		0 0 0 1px #000,
-		0 24px 48px rgb(0 0 0 / 45%);
-	overflow: hidden;
 }
 
 /* ── Title bar ── */
@@ -155,7 +148,7 @@ main {
 	flex: 1;
 }
 
-/* ── Sections (hybrid layout) ── */
+/* ── Sections ── */
 .section {
 	padding: 1.5rem 0;
 	border-bottom: 1px solid var(--border);
@@ -595,26 +588,6 @@ html.hex-animate .hex-hero:not(.is-decoded) .hex-hero__content {
 	margin: 0;
 	font-size: 0.75rem;
 	color: var(--dim);
-}
-
-/* ── Scanline overlay (subtle) ── */
-.terminal-window::after {
-	content: '';
-	position: absolute;
-	inset: 0;
-	background: repeating-linear-gradient(
-		0deg,
-		transparent,
-		transparent 2px,
-		rgb(0 0 0 / 3%) 2px,
-		rgb(0 0 0 / 3%) 4px
-	);
-	pointer-events: none;
-	border-radius: 6px;
-}
-
-.terminal-window {
-	position: relative;
 }
 
 /* ── Reduced motion ── */
