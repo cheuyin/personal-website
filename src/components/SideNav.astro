@@ -1,0 +1,37 @@
+---
+import { homeNav, writingNav } from '../data/site';
+
+interface Props {
+	page?: 'home' | 'writing';
+}
+
+const { page = 'home' } = Astro.props;
+---
+
+<aside class="section-nav" aria-label="Section navigation" data-page={page}>
+	<div class="section-nav__progress" aria-hidden="true" data-progress-fill></div>
+	<nav class="section-nav__list" data-page={page}>
+		{
+			page === 'home'
+				? homeNav.map(({ href, label, id }) => (
+						<a class="section-nav__link" href={href} data-section={id}>
+							{label}
+						</a>
+					))
+				: writingNav.map(({ href, label, current }) => (
+						<a
+							class="section-nav__link"
+							href={href}
+							aria-current={current ? 'page' : undefined}
+						>
+							{label}
+						</a>
+					))
+		}
+	</nav>
+</aside>
+
+<script>
+	import { initSideNav } from '../scripts/side-nav';
+	initSideNav();
+</script>

@@ -1,35 +1,31 @@
 ---
-import BaseLayout from '../layouts/BaseLayout.astro';
-import Header from '../components/Header.astro';
-import Footer from '../components/Footer.astro';
+import SiteLayout from '../layouts/SiteLayout.astro';
+import FocusHero from '../components/FocusHero.astro';
+import ExperienceCard from '../components/ExperienceCard.astro';
+import ProjectCard from '../components/ProjectCard.astro';
 import PostRow from '../components/PostRow.astro';
-import HexDecodeHero from '../components/HexDecodeHero.astro';
-import { site, getWritingPosts } from '../data/site';
+import ContactList from '../components/ContactList.astro';
+import { site, experience, projects, getWritingPosts } from '../data/site';
 
 const posts = await getWritingPosts();
-const latestPosts = posts.slice(0, 3);
-
-const contactLinks = [
-	{ label: 'GitHub', href: site.links.github },
-	{ label: 'LinkedIn', href: site.links.linkedin },
-	{ label: 'Email', href: site.links.email },
-] as const;
+const latestPosts = posts.slice(0, site.homePreviewCount);
+const featuredProjects = projects.slice(0, site.homePreviewCount);
 ---
 
-<BaseLayout title={site.name} description={site.tagline}>
-	<Header slot="header" currentPath="/" />
+<SiteLayout title={site.name} description={site.tagline} page="home">
+	<FocusHero />
 
-	<HexDecodeHero />
-
-	<section class="section">
-		<h2 class="section__title">Now</h2>
-		<p class="section__text">{site.now}</p>
-		<ul class="tag-list">
-			{site.interests.map((interest) => <li class="tag">{interest}</li>)}
-		</ul>
+	<section class="section" id="work">
+		<h2 class="section__title">Work</h2>
+		<div class="experience-list">
+			{experience.map((entry) => <ExperienceCard experience={entry} />)}
+		</div>
+		<div class="project-list project-list--follow">
+			{featuredProjects.map((project) => <ProjectCard project={project} />)}
+		</div>
 	</section>
 
-	<section class="section">
+	<section class="section" id="writing">
 		<h2 class="section__title">Writing</h2>
 		{
 			latestPosts.length > 0 ? (
@@ -49,24 +45,8 @@ const contactLinks = [
 		}
 	</section>
 
-	<section class="section">
+	<section class="section" id="contact">
 		<h2 class="section__title">Contact</h2>
-		<ul class="contact-list">
-			{
-				contactLinks.map(({ label, href }) => (
-					<li>
-						<a
-							href={href}
-							target={href.startsWith('mailto') ? undefined : '_blank'}
-							rel={href.startsWith('mailto') ? undefined : 'noreferrer'}
-						>
-							{label}
-						</a>
-					</li>
-				))
-			}
-		</ul>
+		<ContactList />
 	</section>
-
-	<Footer slot="footer" />
-</BaseLayout>
+</SiteLayout>

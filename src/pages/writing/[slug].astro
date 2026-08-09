@@ -1,8 +1,6 @@
 ---
 import { getCollection, render } from 'astro:content';
-import BaseLayout from '../../layouts/BaseLayout.astro';
-import Header from '../../components/Header.astro';
-import Footer from '../../components/Footer.astro';
+import SiteLayout from '../../layouts/SiteLayout.astro';
 
 export async function getStaticPaths() {
 	const posts = await getCollection('writing');
@@ -17,9 +15,7 @@ const { Content } = await render(post);
 const date = post.data.date.toISOString().slice(0, 10);
 ---
 
-<BaseLayout title={post.data.title} description={post.data.summary}>
-	<Header slot="header" currentPath="/writing" pageLabel={post.data.title} />
-
+<SiteLayout title={post.data.title} description={post.data.summary} page="writing">
 	<article class="post">
 		<header class="post__header">
 			<p class="post__back">
@@ -53,6 +49,4 @@ const date = post.data.date.toISOString().slice(0, 10);
 			<Content />
 		</div>
 	</article>
-
-	<Footer slot="footer" />
-</BaseLayout>
+</SiteLayout>

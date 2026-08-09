@@ -1,32 +1,29 @@
 ---
-import BaseLayout from '../../layouts/BaseLayout.astro';
-import Header from '../../components/Header.astro';
-import Footer from '../../components/Footer.astro';
+import SiteLayout from '../../layouts/SiteLayout.astro';
 import PostRow from '../../components/PostRow.astro';
-import { getWritingPosts } from '../../data/site';
+import { site, getWritingPosts } from '../../data/site';
 
 const posts = await getWritingPosts();
 ---
 
-<BaseLayout
-	title="Writing"
-	description="Notes on projects, debugging, and things I'm still figuring out."
->
-	<Header slot="header" currentPath="/writing" />
-
+<SiteLayout title="Writing" description={site.writingBlurb} page="writing">
 	<section class="section hero hero--compact">
 		<h1 class="hero__name">Writing</h1>
-		<p class="hero__tagline">
-			Notes on projects, debugging, and things I'm still figuring out.
-		</p>
+		<p class="hero__tagline">{site.writingBlurb}</p>
 	</section>
 
 	<section class="section">
 		<h2 class="section__title">Posts</h2>
-		<div class="post-list">
-			{posts.map((post) => <PostRow post={post} />)}
-		</div>
+		{
+			posts.length > 0 ? (
+				<div class="post-list">
+					{posts.map((post) => (
+						<PostRow post={post} />
+					))}
+				</div>
+			) : (
+				<p class="section__text section__text--muted">No posts yet.</p>
+			)
+		}
 	</section>
-
-	<Footer slot="footer" />
-</BaseLayout>
+</SiteLayout>

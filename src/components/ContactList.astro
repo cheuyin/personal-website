@@ -1,0 +1,18 @@
+---
+import { contactLinks } from '../data/site';
+---
+
+<ul class="contact-list">
+	{
+		contactLinks.map(({ label, href }) => {
+			const external = !href.startsWith('mailto:');
+			return (
+				<li>
+					<a href={href} target={external ? '_blank' : undefined} rel={external ? 'noreferrer' : undefined}>
+						{label}
+					</a>
+				</li>
+			);
+		})
+	}
+</ul>

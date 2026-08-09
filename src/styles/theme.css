@@ -1,0 +1,45 @@
+/* Single theme config — edit tokens here. */
+:root {
+	color-scheme: dark;
+
+	/* Surfaces */
+	--paper: #11161d;
+	--paper-deep: #0c1016;
+	--ink: #e8eef3;
+	--muted: #8b98a8;
+	--rule: #2c3644;
+
+	/* Accent */
+	--teal: #3dbaa0;
+	--teal-strong: #5ed0b5;
+	--focus-bg: color-mix(in srgb, var(--teal) 12%, var(--paper));
+
+	/* Glass */
+	--glass: rgb(32 38 48 / 52%);
+	--glass-border: rgb(255 255 255 / 16%);
+	--glass-highlight: rgb(255 255 255 / 22%);
+
+	/* Code */
+	--code-bg: #0a0e14;
+	--code-fg: #e8eef2;
+
+	/* Atmosphere */
+	--glow-teal: rgb(61 186 160 / 14%);
+	--glow-slate: rgb(139 152 168 / 8%);
+
+	/* Type: Space Grotesk (headers) + IBM Plex Sans (body) + Plex Mono (code) */
+	--font-display: 'Space Grotesk', 'Segoe UI', sans-serif;
+	--font-ui: 'IBM Plex Sans', 'Segoe UI', sans-serif;
+	--font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+
+	/* Layout */
+	--page: 42rem;
+	--lh: 1.65;
+	--scroll-pad: 1.5rem;
+	--nav-width: 5.25rem;
+	--nav-gap: 1.5rem;
+	--ease: cubic-bezier(0.22, 1, 0.36, 1);
+
+	/* Browser chrome (keep BaseLayout theme-color meta in sync) */
+	--theme-color: #11161d;
+}
