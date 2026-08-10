@@ -1,4 +1,18 @@
 /* Single theme config — edit tokens here. */
+@theme inline {
+	--color-site-paper: var(--paper);
+	--color-site-paper-deep: var(--paper-deep);
+	--color-site-ink: var(--ink);
+	--color-site-muted: var(--muted);
+	--color-site-rule: var(--rule);
+	--color-site-teal: var(--teal);
+	--color-site-teal-strong: var(--teal-strong);
+	--font-site-display: var(--font-display);
+	--font-site-ui: var(--font-ui);
+	--font-site-mono: var(--font-mono);
+	--ease-site: var(--ease);
+}
+
 :root {
 	color-scheme: dark;
 
