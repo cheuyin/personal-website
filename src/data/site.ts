@@ -94,17 +94,3 @@ export type Post = {
 	summary: string;
 	tags: string[];
 };
-
-export async function getWritingPosts(): Promise<Post[]> {
-	const { getCollection } = await import('astro:content');
-	const entries = await getCollection('writing');
-	return entries
-		.map((entry) => ({
-			slug: entry.id,
-			title: entry.data.title,
-			date: entry.data.date.toISOString().slice(0, 10),
-			summary: entry.data.summary,
-			tags: entry.data.tags,
-		}))
-		.sort((a, b) => b.date.localeCompare(a.date));
-}
