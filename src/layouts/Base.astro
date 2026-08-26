@@ -1,0 +1,71 @@
+---
+import '../styles/global.css';
+import Footer from '../components/Footer.astro';
+import Nav from '../components/Nav.astro';
+import { site } from '../data/site';
+
+interface Props {
+	title?: string;
+	description: string;
+	ogType?: 'website' | 'article';
+	measure?: 'page' | 'post';
+}
+
+const { title, description, ogType = 'website', measure = 'page' } = Astro.props;
+const isHome = !title;
+const documentTitle = isHome ? site.name : `${title} · ${site.name}`;
+const canonical = new URL(Astro.url.pathname, Astro.site ?? site.url).href;
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<meta name="theme-color" content="#f1f0e8" />
+		<meta name="description" content={description} />
+		<meta property="og:title" content={documentTitle} />
+		<meta property="og:description" content={description} />
+		<meta property="og:type" content={ogType} />
+		<meta property="og:url" content={canonical} />
+		<link rel="canonical" href={canonical} />
+		<link rel="icon" href="data:," />
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<link
+			href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&display=swap"
+			rel="stylesheet"
+		/>
+		<title>{documentTitle}</title>
+		<script is:inline>
+			(function () {
+				const stored = window.localStorage.getItem('theme');
+				const theme =
+					stored === 'dark' || stored === 'light'
+						? stored
+						: window.matchMedia('(prefers-color-scheme: dark)').matches
+							? 'dark'
+							: 'light';
+				document.documentElement.dataset.theme = theme;
+				const meta = document.querySelector('meta[name="theme-color"]');
+				if (meta) {
+					meta.setAttribute('content', theme === 'dark' ? '#131511' : '#f1f0e8');
+				}
+			})();
+		</script>
+	</head>
+	<body class="font-serif">
+		<div
+			class:list={[
+				'mx-auto flex min-h-screen flex-col px-5 sm:px-6',
+				measure === 'post' ? 'max-w-[38rem]' : 'max-w-[42rem]',
+			]}
+		>
+			<Nav />
+			<main class="flex-1 pt-12 pb-16">
+				<slot />
+			</main>
+			<Footer />
+		</div>
+	</body>
+</html>

@@ -1,0 +1,31 @@
+---
+import { contactLinks, site } from '../data/site';
+
+const year = new Date().getFullYear();
+---
+
+<footer class="mt-auto border-t border-rule py-6 text-[0.9375rem] text-muted">
+	<div class="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2">
+		<p class="m-0">© {year} {site.name}</p>
+		<ul class="m-0 flex list-none flex-wrap gap-x-5 gap-y-1 p-0">
+			{
+				contactLinks.map(({ label, href }) => {
+					const external = !href.startsWith('mailto:');
+
+					return (
+						<li>
+							<a
+								class="link"
+								href={href}
+								target={external ? '_blank' : undefined}
+								rel={external ? 'noreferrer' : undefined}
+							>
+								{label}
+							</a>
+						</li>
+					);
+				})
+			}
+		</ul>
+	</div>
+</footer>

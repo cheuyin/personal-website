@@ -1,0 +1,23 @@
+---
+import type { Experience } from '../data/site';
+
+interface Props {
+	entry: Experience;
+}
+
+const { entry } = Astro.props;
+---
+
+<article class="row">
+	<h2 class="m-0 text-[1.25rem] font-semibold leading-snug tracking-[-0.02em] text-ink">{entry.role}</h2>
+	<p class="mt-1 m-0 text-[1.05rem] text-ink">
+		{entry.company} · {entry.location}
+	</p>
+	<p class="mt-1 m-0 text-[0.9375rem] text-muted">
+		<time datetime={entry.startDate}>{entry.dates}</time>
+		<span class="text-faint"> · {entry.stack}</span>
+	</p>
+	<ul class="mt-4 mb-0 list-disc space-y-2 pl-5 text-[1.05rem] leading-7 marker:text-accent">
+		{entry.highlights.map((highlight) => <li>{highlight}</li>)}
+	</ul>
+</article>

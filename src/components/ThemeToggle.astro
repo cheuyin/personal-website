@@ -1,0 +1,48 @@
+<button class="theme-toggle" type="button" aria-label="Switch to dark theme" data-theme-toggle>
+	<svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true">
+		<path
+			stroke-linecap="round"
+			stroke-linejoin="round"
+			d="M21 14.3A8.5 8.5 0 0 1 9.7 3 7 7 0 1 0 21 14.3Z"
+		></path>
+	</svg>
+	<svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true">
+		<circle cx="12" cy="12" r="4"></circle>
+		<path stroke-linecap="round" d="M12 3v1.5M12 19.5V21M4.9 4.9l1.1 1.1M18 18l1.1 1.1M3 12h1.5M19.5 12H21M4.9 19.1 6 18M18 6l1.1-1.1"></path>
+	</svg>
+</button>
+
+<script>
+	const lightColor = '#f1f0e8';
+	const darkColor = '#131511';
+
+	function currentTheme(): 'light' | 'dark' {
+		return document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light';
+	}
+
+	function applyTheme(theme: 'light' | 'dark') {
+		document.documentElement.dataset.theme = theme;
+		window.localStorage.setItem('theme', theme);
+
+		const meta = document.querySelector('meta[name="theme-color"]');
+		if (meta) {
+			meta.setAttribute('content', theme === 'dark' ? darkColor : lightColor);
+		}
+
+		for (const button of document.querySelectorAll<HTMLButtonElement>('[data-theme-toggle]')) {
+			button.setAttribute('aria-label', theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme');
+		}
+
+		document.dispatchEvent(new Event('themechange'));
+	}
+
+	for (const button of document.querySelectorAll<HTMLButtonElement>('[data-theme-toggle]')) {
+		button.addEventListener('click', () => {
+			applyTheme(currentTheme() === 'dark' ? 'light' : 'dark');
+		});
+		button.setAttribute(
+			'aria-label',
+			currentTheme() === 'dark' ? 'Switch to light theme' : 'Switch to dark theme',
+		);
+	}
+</script>

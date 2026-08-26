@@ -1,0 +1,53 @@
+---
+import 'katex/dist/katex.min.css';
+import { render } from 'astro:content';
+import Mermaid from '../../components/Mermaid.astro';
+import Prose from '../../components/Prose.astro';
+import Base from '../../layouts/Base.astro';
+import { formatDate } from '../../data/site';
+import { countWords, formatWordCount, getWritingPosts, type WritingPost } from '../../lib/writing';
+
+export async function getStaticPaths() {
+	const posts = await getWritingPosts();
+
+	return posts.map((post) => ({
+		params: { slug: post.id },
+		props: { post },
+	}));
+}
+
+interface Props {
+	post: WritingPost;
+}
+
+const { post } = Astro.props;
+const { Content } = await render(post);
+const hasMermaid = post.body?.includes('```mermaid') ?? false;
+const words = formatWordCount(countWords(post.body ?? ''));
+---
+
+<Base title={post.data.title} description={post.data.summary} ogType="article" measure="post">
+	<article>
+		<p class="mb-6 m-0 text-[0.9375rem]">
+			<a class="link" href="/writing">Writing</a>
+		</p>
+		<h1 class="m-0 text-[2.25rem] font-semibold leading-[1.15] tracking-[-0.02em] sm:text-[2.5rem]">
+			{post.data.title}
+		</h1>
+		<div class="mt-5 flex flex-wrap gap-x-4 gap-y-1 text-[0.9375rem] text-muted">
+			<time datetime={post.data.date.toISOString()}>{formatDate(post.data.date)}</time>
+			<p class="m-0">{words}</p>
+			{
+				post.data.tags.length > 0 && (
+					<p class="m-0">{post.data.tags.join(' · ')}</p>
+				)
+			}
+		</div>
+		<p class="mt-5 m-0 text-muted">{post.data.summary}</p>
+		<hr class="mt-8 mb-10 border-0 border-t border-rule" />
+		<Prose>
+			<Content />
+		</Prose>
+		{hasMermaid && <Mermaid />}
+	</article>
+</Base>

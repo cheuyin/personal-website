@@ -1,64 +1,31 @@
 export const site = {
-	name: 'Cheuyin',
-	fullName: 'Stanley Cheung',
-	role: '4th year CS student at UBC',
-	tagline:
-		'I use my CS background to take full advantage of agent systems and ship real products that solve real problems.',
-	focus: 'Full-stack · Agents · Product design',
-	writingBlurb: "Notes on projects, debugging, and things I'm still figuring out.",
-	homePreviewCount: 3,
+	name: 'Stanley Cheung',
+	shortName: 'Cheuyin',
+	role: 'CS student at UBC',
+	tagline: 'I write about building software, and I ship products with agent systems.',
+	writingBlurb: 'Notes on projects, debugging, and things I am still figuring out.',
+	url: 'https://stanleycheung.com',
 	links: {
 		github: 'https://github.com/cheuyin',
 		linkedin: 'https://www.linkedin.com/in/yinstanleycheung/',
+		x: 'https://x.com/stanleycwins',
 		email: 'mailto:yinstanleycheung@gmail.com',
 	},
 } as const;
 
+export const nav = [
+	{ href: '/', label: 'Home' },
+	{ href: '/writing', label: 'Writing' },
+	{ href: '/projects', label: 'Projects' },
+	{ href: '/experience', label: 'Experience' },
+] as const;
+
 export const contactLinks = [
 	{ label: 'GitHub', href: site.links.github },
 	{ label: 'LinkedIn', href: site.links.linkedin },
+	{ label: 'X', href: site.links.x },
 	{ label: 'Email', href: site.links.email },
 ] as const;
-
-export const homeNav = [
-	{ href: '#top', label: 'Top', id: 'top' },
-	{ href: '#work', label: 'Work', id: 'work' },
-	{ href: '#writing', label: 'Writing', id: 'writing' },
-	{ href: '#contact', label: 'Contact', id: 'contact' },
-] as const;
-
-export const writingNav = [
-	{ href: '/', label: 'Home' },
-	{ href: '/writing', label: 'Writing', current: true },
-	{ href: '/#contact', label: 'Contact' },
-] as const;
-
-export type Experience = {
-	role: string;
-	company: string;
-	location: string;
-	dates: string;
-	startDate: string;
-	stack: string;
-	highlights: string[];
-};
-
-export const experience: Experience[] = [
-	{
-		role: 'Software Engineer Intern',
-		company: 'VoltSafe Inc.',
-		location: 'Vancouver, BC',
-		dates: 'Jan 2024 – Oct 2024',
-		startDate: '2024-01',
-		stack: 'TypeScript · Express.js · PostgreSQL · AWS · React',
-		highlights: [
-			'Built permissions for an internal admin dashboard so staff only saw what they were allowed to.',
-			'Set up live monitoring across 7+ servers so the team could catch issues early.',
-			'Added file storage to a marina app and cut bandwidth costs.',
-			'Made the frontend 22% smaller and faster to load by cleaning up unused assets.',
-		],
-	},
-];
 
 export type Project = {
 	title: string;
@@ -87,10 +54,38 @@ export const projects: Project[] = [
 	},
 ];
 
-export type Post = {
-	slug: string;
-	title: string;
-	date: string;
-	summary: string;
-	tags: string[];
+export type Experience = {
+	role: string;
+	company: string;
+	location: string;
+	dates: string;
+	startDate: string;
+	stack: string;
+	highlights: string[];
 };
+
+export const experience: Experience[] = [
+	{
+		role: 'Software Engineer Intern',
+		company: 'VoltSafe Inc.',
+		location: 'Vancouver, BC',
+		dates: 'Jan 2024 – Oct 2024',
+		startDate: '2024-01',
+		stack: 'TypeScript · Express.js · PostgreSQL · AWS · React',
+		highlights: [
+			'Built permissions for an internal admin dashboard so staff only saw what they were allowed to.',
+			'Set up live monitoring across 7+ servers so the team could catch issues early.',
+			'Added file storage to a marina app and cut bandwidth costs.',
+			'Made the frontend 22% smaller and faster to load by cleaning up unused assets.',
+		],
+	},
+];
+
+export function formatDate(date: Date): string {
+	return date.toLocaleDateString('en-US', {
+		year: 'numeric',
+		month: 'long',
+		day: 'numeric',
+		timeZone: 'UTC',
+	});
+}

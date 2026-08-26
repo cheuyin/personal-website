@@ -1,0 +1,16 @@
+---
+import PostList from '../../components/PostList.astro';
+import Base from '../../layouts/Base.astro';
+import { site } from '../../data/site';
+import { getWritingPosts } from '../../lib/writing';
+
+const posts = await getWritingPosts();
+---
+
+<Base title="Writing" description={site.writingBlurb}>
+	<h1 class="m-0 text-[2.5rem] font-semibold leading-[1.15] tracking-[-0.02em] sm:text-[2.75rem]">Writing</h1>
+	<p class="mt-6 m-0 max-w-[38rem]">{site.writingBlurb}</p>
+	<div class="mt-12">
+		<PostList posts={posts} />
+	</div>
+</Base>

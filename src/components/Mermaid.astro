@@ -1,0 +1,71 @@
+<script>
+	import mermaid from 'mermaid';
+
+	function cssVar(name: string): string {
+		return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+	}
+
+	mermaid.initialize({
+		startOnLoad: false,
+		securityLevel: 'loose',
+		theme: 'base',
+		flowchart: {
+			diagramPadding: 32,
+			nodeSpacing: 90,
+			rankSpacing: 90,
+			useMaxWidth: false,
+			padding: 20,
+		},
+		themeVariables: {
+			fontFamily: 'Source Serif 4, Palatino, Georgia, serif',
+			primaryColor: cssVar('--paper-deep'),
+			primaryTextColor: cssVar('--ink'),
+			primaryBorderColor: cssVar('--rule'),
+			lineColor: cssVar('--muted'),
+			secondaryColor: cssVar('--paper'),
+			tertiaryColor: cssVar('--paper-deep'),
+			background: cssVar('--paper'),
+			mainBkg: cssVar('--paper-deep'),
+			nodeBorder: cssVar('--rule'),
+			clusterBkg: cssVar('--paper-deep'),
+			titleColor: cssVar('--ink'),
+			edgeLabelBackground: cssVar('--paper'),
+		},
+	});
+
+	if (document.fonts?.ready) {
+		await document.fonts.ready;
+	}
+
+	await mermaid.run({ querySelector: 'pre.mermaid' });
+
+	for (const svg of document.querySelectorAll<SVGSVGElement>('pre.mermaid svg')) {
+		if (svg.querySelector('.error-text')) {
+			continue;
+		}
+
+		svg.style.overflow = 'visible';
+
+		for (const text of svg.querySelectorAll('text')) {
+			const length = text.getComputedTextLength();
+			const rect = text.parentElement?.querySelector('rect.background');
+			if (!rect || length === 0) {
+				continue;
+			}
+
+			const pad = 6;
+			rect.setAttribute('x', String(-length / 2 - pad));
+			rect.setAttribute('width', String(length + pad * 2));
+		}
+
+		const bbox = svg.getBBox();
+		const padX = 28;
+		const padY = 16;
+		svg.setAttribute(
+			'viewBox',
+			`${bbox.x - padX} ${bbox.y - padY} ${bbox.width + padX * 2} ${bbox.height + padY * 2}`,
+		);
+		svg.setAttribute('width', String(bbox.width + padX * 2));
+		svg.setAttribute('height', String(bbox.height + padY * 2));
+	}
+</script>

@@ -1,0 +1,12 @@
+---
+import ExperienceEntry from '../components/ExperienceEntry.astro';
+import Base from '../layouts/Base.astro';
+import { experience } from '../data/site';
+---
+
+<Base title="Experience" description="Roles and work I have done.">
+	<h1 class="m-0 text-[2.5rem] font-semibold leading-[1.15] tracking-[-0.02em] sm:text-[2.75rem]">Experience</h1>
+	<div class="mt-12">
+		{experience.map((entry) => <ExperienceEntry entry={entry} />)}
+	</div>
+</Base>

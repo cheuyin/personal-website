@@ -1,0 +1,12 @@
+---
+import Base from '../layouts/Base.astro';
+import { site } from '../data/site';
+---
+
+<Base description={site.tagline}>
+	<h1 class="m-0 text-[2.5rem] font-semibold leading-[1.15] tracking-[-0.02em] sm:text-[2.75rem]">
+		{site.name}
+	</h1>
+	<p class="mt-4 m-0 text-[0.9375rem] text-muted">{site.role}</p>
+	<p class="mt-6 m-0 max-w-[38rem]">{site.tagline}</p>
+</Base>
