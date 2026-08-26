@@ -1,4 +1,5 @@
 ---
+import ContactIcon from './ContactIcon.astro';
 import { projects } from '../data/site';
 ---
 
@@ -10,13 +11,18 @@ import { projects } from '../data/site';
 					<a class="link" href={project.href} target="_blank" rel="noreferrer">
 						{project.title}
 					</a>
+					<a
+						class="contact-link ml-2 align-middle"
+						href={project.href}
+						target="_blank"
+						rel="noreferrer"
+						aria-label={`${project.title} on GitHub`}
+						title="GitHub"
+					>
+						<ContactIcon name="GitHub" />
+					</a>
 				</h2>
 				<p class="mt-2 m-0 text-[1.05rem] leading-7 text-muted">{project.summary}</p>
-				<p class="mt-3 m-0">
-					<a class="text-[0.9375rem] text-muted no-underline hover:text-accent hover:underline hover:underline-offset-[0.18em]" href={project.href} target="_blank" rel="noreferrer">
-						GitHub
-					</a>
-				</p>
 			</article>
 		))
 	}
