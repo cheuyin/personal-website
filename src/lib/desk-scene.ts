@@ -295,10 +295,10 @@ function woodMaps(
 
 	const colorData = colorCtx.createImageData(width, height);
 	const bumpData = bumpCtx.createImageData(width, height);
-	const light = [214, 178, 132];
-	const mid = [176, 134, 88];
-	const dark = [122, 86, 52];
-	const plankCount = kind === 'edge' ? 1 : 6;
+	const light = [216, 182, 140];
+	const mid = [184, 146, 106];
+	const dark = [138, 102, 70];
+	const plankCount = kind === 'edge' ? 1 : 5;
 
 	for (let y = 0; y < height; y += 1) {
 		for (let x = 0; x < width; x += 1) {
@@ -307,32 +307,32 @@ function woodMaps(
 			const plank = Math.min(plankCount - 1, Math.floor(ny * plankCount));
 			const plankY = (ny * plankCount) % 1;
 			const seed = hash2(plank + 1, 3.7);
-			const wave = Math.sin((nx + seed) * (7 + seed * 4) + Math.sin(ny * 14) * 0.35) * 10;
+			const warp = Math.sin(ny * 7 + seed * 5) * 3.2 + Math.sin(ny * 17 + seed * 2) * 1.1;
 			let grain: number;
-			let ring = 0;
 
 			if (kind === 'end') {
-				const cx = ((plank + 0.5) / plankCount - ny) * 2.4;
-				const cy = (nx - 0.5) * 2;
-				ring = Math.sqrt(cx * cx + cy * cy) * 18 + Math.sin(nx * 20 + seed) * 0.6;
-				grain = 0.5 + 0.5 * Math.sin(ring);
+				const cx = ((plank + 0.5) / plankCount - ny) * 2.2;
+				const cy = (nx - 0.5) * 1.8;
+				const ring = Math.sqrt(cx * cx + cy * cy) * 14 + Math.sin(nx * 16 + seed) * 0.4;
+				grain = Math.sin(ring) * 0.12;
 			} else {
-				const along = x + wave + seed * 40 + Math.sin((y + seed * 80) * 0.045) * 6;
-				grain = 0.5 + 0.5 * Math.sin(along * 0.085);
-				grain = grain * 0.82 + (0.5 + 0.5 * Math.sin(along * 0.31 + seed * 6)) * 0.18;
+				const along = x + warp + seed * 28;
+				grain = Math.sin(along * 0.13) * 0.12 + Math.sin(along * 0.41 + seed * 4) * 0.05;
 			}
 
-			const noise = hash2(x * 0.37, y * 0.19) * 0.12;
-			const seam = kind === 'boards' ? Math.pow(Math.abs(plankY - 0.5) * 2, 8) * 0.08 + (plankY < 0.02 || plankY > 0.98 ? 0.22 : 0) : 0;
-			const tint = seed * 0.16 - 0.08;
-			let t = Math.min(1, Math.max(0, grain + noise + tint - seam));
+			const noise = (hash2(x * 0.51, y * 0.47) - 0.5) * 0.05;
+			const seamDist = Math.min(plankY, 1 - plankY);
+			const seam = kind === 'boards' ? Math.max(0, 0.034 - seamDist) * 3.6 : 0;
+			const streak = Math.pow(Math.max(0, Math.sin(ny * 18 + seed * 8) * Math.sin(nx * 2.4 + seed * 3)), 10) * 0.16;
+			const boardShift = (seed - 0.5) * 0.08;
+			const t = Math.min(1, Math.max(0, 0.56 + grain + boardShift + noise - seam - streak));
 			const rgb = t < 0.5 ? mixColor(dark, mid, t * 2) : mixColor(mid, light, (t - 0.5) * 2);
 			const i = (y * width + x) * 4;
 			colorData.data[i] = rgb[0];
 			colorData.data[i + 1] = rgb[1];
 			colorData.data[i + 2] = rgb[2];
 			colorData.data[i + 3] = 255;
-			const bumpV = Math.min(255, Math.max(0, 118 + grain * 90 - seam * 70 + noise * 40));
+			const bumpV = Math.min(255, Math.max(0, 128 + grain * 130 - seam * 70 - streak * 80 + noise * 50));
 			bumpData.data[i] = bumpData.data[i + 1] = bumpData.data[i + 2] = bumpV;
 			bumpData.data[i + 3] = 255;
 		}
@@ -356,7 +356,7 @@ function woodMaterial(
 	const material = new THREE.MeshStandardMaterial({
 		map: maps.map,
 		bumpMap: maps.bumpMap,
-		bumpScale: 0.028,
+		bumpScale: 0.014,
 		roughness: 0.62,
 		metalness: 0,
 		envMapIntensity: 0.2,
@@ -718,10 +718,10 @@ function makeTable(width: number, depth: number): THREE.Group {
 	const topMaps = woodMaps(1024, 512, 'boards');
 	const edgeMaps = woodMaps(1024, 128, 'edge');
 	const endMaps = woodMaps(512, 256, 'end');
-	const topMat = woodMaterial(topMaps, { roughness: 0.52, envMapIntensity: 0.26, bumpScale: 0.032 });
-	const edgeMat = woodMaterial(edgeMaps, { roughness: 0.64, bumpScale: 0.02 });
-	const endMat = woodMaterial(endMaps, { roughness: 0.7, bumpScale: 0.018 });
-	const bottomMat = woodMaterial(edgeMaps, { roughness: 0.86, bumpScale: 0.01, envMapIntensity: 0.08 });
+	const topMat = woodMaterial(topMaps, { roughness: 0.5, envMapIntensity: 0.24, bumpScale: 0.02 });
+	const edgeMat = woodMaterial(edgeMaps, { roughness: 0.64, bumpScale: 0.01 });
+	const endMat = woodMaterial(endMaps, { roughness: 0.7, bumpScale: 0.01 });
+	const bottomMat = woodMaterial(edgeMaps, { roughness: 0.86, bumpScale: 0.006, envMapIntensity: 0.08 });
 	const top = new THREE.Mesh(new THREE.BoxGeometry(width, thickness, depth), [
 		endMat,
 		endMat,
