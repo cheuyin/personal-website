@@ -176,7 +176,7 @@ export const site = {
   shortName: "Cheuyin",
   homeGreetingPrefix: "Hi 👋, I'm",
   role: "Software engineer and CS student at UBC",
-  tagline:
+  description:
     "I write about building software, and I ship products with agent systems.",
   writingBlurb:
     "Notes on projects, debugging, and things I am still figuring out.",
@@ -190,6 +190,8 @@ export const site = {
 ```
 
 Use `name` in the footer and document title. Use `homeGreetingPrefix` plus `givenName` in the home heading. `legalGivenName` is the hover and tap face of the given name. The rest of the greeting stays put. Use `shortName` only in the document title suffix if the full name is already in the page title.
+
+`description` is the site-wide meta description and the home page `og:description`. It is never rendered as visible copy.
 
 The home intro lives in `intro`, a list of paragraphs. Each paragraph is a list of `IntroSegment` values, where a segment carries an optional `href` so a phrase can become a link. Keep markup out of the copy; a segment is plain text and a URL, never HTML.
 
@@ -258,10 +260,9 @@ No page-title heading other than the name.
 
 1. `h1`: Hi 👋, I'm Stanley. Hover or tap to flip only `Stanley` to `Yin`. The greeting prefix does not move. The hit box stays as wide as the rest state so the name can flip without dropping hover or shrinking the line. On a phone, tap toggles and stays until you tap again. The accessible heading remains Hi 👋, I'm Stanley.
 2. One line in `--muted`: Software engineer and CS student at UBC.
-3. Tagline in body size, max-width the home column.
-4. Intro paragraphs from `intro`, same body size and rhythm as the tagline. The copy is a short history, not a résumé, and it ends on why the site exists.
-5. Heading `Writing`, then the three latest posts via `PostList`. A text link under the list: “All writing”.
-6. Two sentences as links, not sections: “See projects” and “See experience”.
+3. Intro paragraphs from `intro`, in body size at the home column width. The copy is a short history, not a résumé, and it ends on why the site exists. There is no separate tagline line, because the intro already states what the site is for and saying it twice weakens both.
+4. Heading `Writing`, then the three latest posts via `PostList`. A text link under the list: “All writing”.
+5. Two sentences as links, not sections: “See projects” and “See experience”.
 
 Do not repeat project summaries or job bullets here. Do not put contact CTAs here.
 

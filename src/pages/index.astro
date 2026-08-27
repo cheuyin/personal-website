@@ -4,12 +4,11 @@ import NameFlip from '../components/NameFlip.astro';
 import { intro, site } from '../data/site';
 ---
 
-<Base description={site.tagline}>
+<Base description={site.description}>
 	<h1 class="m-0 text-[clamp(1.7rem,calc(0.85rem+4.6vw),2.75rem)] font-semibold leading-[1.15] tracking-[-0.02em]">
 		<NameFlip />
 	</h1>
 	<p class="mt-4 m-0 text-[0.9375rem] text-muted">{site.role}</p>
-	<p class="mt-6 m-0">{site.tagline}</p>
 	{
 		intro.map((paragraph) => (
 			<p class="mt-6 m-0">
