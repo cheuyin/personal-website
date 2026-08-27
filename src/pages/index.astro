@@ -1,7 +1,7 @@
 ---
 import Base from '../layouts/Base.astro';
 import NameFlip from '../components/NameFlip.astro';
-import { site } from '../data/site';
+import { intro, site } from '../data/site';
 ---
 
 <Base description={site.tagline}>
@@ -10,4 +10,19 @@ import { site } from '../data/site';
 	</h1>
 	<p class="mt-4 m-0 text-[0.9375rem] text-muted">{site.role}</p>
 	<p class="mt-6 m-0">{site.tagline}</p>
+	{
+		intro.map((paragraph) => (
+			<p class="mt-6 m-0">
+				{paragraph.map((segment) =>
+					segment.href ? (
+						<a class="link" href={segment.href} target="_blank" rel="noreferrer">
+							{segment.text}
+						</a>
+					) : (
+						segment.text
+					),
+				)}
+			</p>
+		))
+	}
 </Base>

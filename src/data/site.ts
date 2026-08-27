@@ -31,6 +31,41 @@ export const contactLinks = [
 	{ label: 'Email', href: site.links.email },
 ] as const;
 
+export type IntroSegment = {
+	text: string;
+	href?: string;
+};
+
+export const intro: IntroSegment[][] = [
+	[
+		{
+			text: 'In 2024 I worked two terms at VoltSafe as a full stack engineer, shipping features for the web dashboard behind their smart chargers.',
+		},
+	],
+	[
+		{ text: 'In 2025 I stepped back. Essays like ' },
+		{ text: 'AI 2027', href: 'https://ai-2027.com/' },
+		{
+			text: ' made me unsure whether coding was still the right path, so I spent the year exploring other interests: UX, sales, copywriting, product, and video. One of those experiments became a YouTube channel that reached 125,000 views.',
+		},
+	],
+	[
+		{
+			text: "By the start of 2026, I realized I enjoy building things, with code or without. AI is more fascinating than it is scary, and being able to build software with natural language is frickin' awesome.",
+		},
+	],
+	[
+		{
+			text: "Since then, I've returned to tech with ferocity, learning all I can about agentic AI, and shipping an assortment of useful tools and fun toys.",
+		},
+	],
+	[
+		{
+			text: "Writing is the best tool I know for learning, thinking, and talking to other people, so that's mostly what this site is about.",
+		},
+	],
+];
+
 export type Project = {
 	title: string;
 	summary: string;
