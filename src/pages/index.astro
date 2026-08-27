@@ -1,5 +1,6 @@
 ---
 import Base from '../layouts/Base.astro';
+import DeskStill from '../components/DeskStill.astro';
 import NameFlip from '../components/NameFlip.astro';
 import { intro, site } from '../data/site';
 ---
@@ -9,6 +10,7 @@ import { intro, site } from '../data/site';
 		<NameFlip />
 	</h1>
 	<p class="mt-4 m-0 text-[0.9375rem] text-muted">{site.role}</p>
+	<DeskStill />
 	{
 		intro.map((paragraph) => (
 			<p class="mt-6 m-0">
