@@ -1,0 +1,66 @@
+---
+import { site } from '../data/site';
+---
+
+<span class="name-flip-host" data-name-flip data-family={site.familyName}>
+	<span class="name-flip">
+		<span class="name-flip-inner">
+			<span class="name-flip-front">{site.givenName}</span>
+			<span class="name-flip-back" aria-hidden="true" data-legal={site.legalGivenName}></span>
+		</span>
+	</span>
+	{' '}{site.familyName}
+</span>
+
+<script>
+	const hoverQuery = window.matchMedia('(hover: hover)');
+
+	function measureText(sample: HTMLElement, text: string): number {
+		const probe = document.createElement('span');
+		const styles = getComputedStyle(sample);
+		probe.textContent = text;
+		probe.style.position = 'absolute';
+		probe.style.visibility = 'hidden';
+		probe.style.whiteSpace = 'nowrap';
+		probe.style.font = styles.font;
+		probe.style.letterSpacing = styles.letterSpacing;
+		document.body.append(probe);
+		const width = probe.getBoundingClientRect().width;
+		probe.remove();
+		return width;
+	}
+
+	function sizeFlip(el: HTMLElement) {
+		const front = el.querySelector<HTMLElement>('.name-flip-front');
+		const back = el.querySelector<HTMLElement>('.name-flip-back');
+
+		if (!front || !back) {
+			return;
+		}
+
+		el.style.setProperty('--front-width', `${measureText(front, front.textContent ?? '')}px`);
+		el.style.setProperty('--back-width', `${measureText(front, back.dataset.legal ?? '')}px`);
+		el.style.setProperty(
+			'--host-width',
+			`${measureText(front, `${front.textContent ?? ''} ${el.dataset.family ?? ''}`)}px`,
+		);
+	}
+
+	async function init(el: HTMLElement) {
+		el.addEventListener('click', () => {
+			if (hoverQuery.matches) {
+				return;
+			}
+
+			el.classList.toggle('is-flipped');
+		});
+
+		await document.fonts.ready;
+		sizeFlip(el);
+		window.addEventListener('resize', () => sizeFlip(el));
+	}
+
+	for (const el of document.querySelectorAll<HTMLElement>('[data-name-flip]')) {
+		void init(el);
+	}
+</script>

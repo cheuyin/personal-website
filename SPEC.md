@@ -18,7 +18,7 @@ Success is a stranger who can read a post comfortably, then find who you are and
 - Light theme only.
 - No client-side routing. Every URL is a real page.
 - No side nav, bottom nav, hamburger, cards, shadows, glass, or background grids.
-- JavaScript is allowed only where a post needs it (math, diagrams). The rest of the site is HTML and CSS.
+- JavaScript is allowed for the theme toggle, the home-name tap flip, and post math or diagrams. The rest of the site is HTML and CSS.
 - Contact is not a page. GitHub, LinkedIn, and email live in the footer on every page.
 - Custom domain: `stanleycheung.com`. Deploy from `main` to GitHub Pages. This branch is `design-revamp` and does not deploy until merged.
 
@@ -102,7 +102,7 @@ Post measure is `38rem` (~65 characters). Listing pages use `42rem`. Nav and foo
 
 ### Motion
 
-None, except link color and underline. Honor `prefers-reduced-motion` even for that if it is a transition. Focus states are a 2px rust outline with offset.
+None, except link color and underline, and a 3D flip of the given name on the home heading. Honor `prefers-reduced-motion`: skip the rotate and swap the text. Focus states are a 2px rust outline with offset.
 
 ## Information architecture
 
@@ -170,8 +170,11 @@ Site-wide files (favicon, CNAME) stay in `public/`. Anything that belongs to a p
 ```ts
 export const site = {
   name: "Stanley Cheung",
+  givenName: "Stanley",
+  legalGivenName: "Yin",
+  familyName: "Cheung",
   shortName: "Cheuyin",
-  role: "CS student at UBC",
+  role: "Software engineer and CS student at UBC",
   tagline:
     "I write about building software, and I ship products with agent systems.",
   writingBlurb:
@@ -185,7 +188,7 @@ export const site = {
 } as const;
 ```
 
-Use `name` in the nav, footer, and home heading. Use `shortName` only in the document title suffix if the full name is already in the page title.
+Use `name` in the footer and document title. Use `givenName` and `familyName` in the home heading. `legalGivenName` is the hover and tap face of that heading. Use `shortName` only in the document title suffix if the full name is already in the page title.
 
 ### Writing collection
 
@@ -250,8 +253,8 @@ Every page uses `Base.astro`. Pass `title` and `description` for `<title>` and m
 
 No page-title heading other than the name.
 
-1. `h1`: Stanley Cheung.
-2. One line in `--muted`: CS student at UBC.
+1. `h1`: Stanley Cheung. Hover the name to peek `Yin`; leave to restore `Stanley`. The hover box stays as wide as Stanley Cheung so the letters can slide without dropping hover. On a phone, tap toggles and stays until you tap again. The accessible heading remains Stanley Cheung.
+2. One line in `--muted`: Software engineer and CS student at UBC.
 3. Tagline in body size, max-width the home column.
 4. Heading `Writing`, then the three latest posts via `PostList`. A text link under the list: “All writing”.
 5. Two sentences as links, not sections: “See projects” and “See experience”.

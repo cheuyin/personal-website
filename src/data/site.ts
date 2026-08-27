@@ -1,7 +1,10 @@
 export const site = {
 	name: 'Stanley Cheung',
+	givenName: 'Stanley',
+	legalGivenName: 'Yin',
+	familyName: 'Cheung',
 	shortName: 'Cheuyin',
-	role: 'CS student at UBC',
+	role: 'Software engineer and CS student at UBC',
 	tagline: 'I write about building software, and I ship products with agent systems.',
 	writingBlurb: 'Notes on projects, debugging, and things I am still figuring out.',
 	url: 'https://stanleycheung.com',
