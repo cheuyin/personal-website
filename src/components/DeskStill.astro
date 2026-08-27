@@ -1,0 +1,20 @@
+<div class="desk-still" data-desk-still>
+	<canvas
+		class="desk-still-canvas"
+		tabindex="0"
+		role="img"
+		aria-label="A small 3D still life of a space-gray laptop, a potted plant, a ceramic cup of black coffee, and a ballpoint pen on paper. Drag or use the arrow keys to turn it."
+	></canvas>
+</div>
+
+<script>
+	import { mountDeskStill } from '../lib/desk-scene';
+
+	for (const root of document.querySelectorAll<HTMLElement>('[data-desk-still]')) {
+		const canvas = root.querySelector('canvas');
+
+		if (canvas) {
+			mountDeskStill(canvas);
+		}
+	}
+</script>

@@ -183,6 +183,31 @@ html[data-theme='dark'] {
 		text-decoration-color: currentColor;
 	}
 
+	.desk-still {
+		margin: 1.5rem 0 0;
+		width: 100%;
+		height: 17.5rem;
+	}
+
+	.desk-still-canvas {
+		display: block;
+		width: 100%;
+		height: 100%;
+		cursor: grab;
+		touch-action: none;
+	}
+
+	.desk-still-canvas:focus-visible {
+		outline: 2px solid var(--accent);
+		outline-offset: 2px;
+	}
+
+	@media (min-width: 640px) {
+		.desk-still {
+			height: 21.5rem;
+		}
+	}
+
 	.row {
 		border-top: 1px solid var(--rule);
 		padding-block: 1.5rem;
