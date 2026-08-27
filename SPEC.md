@@ -89,7 +89,7 @@ Scale:
 | Meta (dates, nav, footer) | 0.9375rem, `--muted`                                   |                                     |
 | Code                      | 0.875em of the surrounding size                        |                                     |
 
-Post measure is `38rem` (~65 characters). Listing pages use `42rem`. Nav and footer share the same max width as the page they sit on.
+Post measure is `48rem`. Listing pages, nav, and footer use the same max width.
 
 ### Layout
 
@@ -102,7 +102,7 @@ Post measure is `38rem` (~65 characters). Listing pages use `42rem`. Nav and foo
 
 ### Motion
 
-None, except link color and underline, and a 3D flip of the given name on the home heading. Honor `prefers-reduced-motion`: skip the rotate and swap the text. Focus states are a 2px rust outline with offset.
+None, except link color and underline, and a 3D flip of the given name in the home greeting. Honor `prefers-reduced-motion`: skip the rotate and swap the text. Focus states are a 2px rust outline with offset.
 
 ## Information architecture
 
@@ -174,6 +174,7 @@ export const site = {
   legalGivenName: "Yin",
   familyName: "Cheung",
   shortName: "Cheuyin",
+  homeGreetingPrefix: "Hi 👋, I'm",
   role: "Software engineer and CS student at UBC",
   tagline:
     "I write about building software, and I ship products with agent systems.",
@@ -188,7 +189,7 @@ export const site = {
 } as const;
 ```
 
-Use `name` in the footer and document title. Use `givenName` and `familyName` in the home heading. `legalGivenName` is the hover and tap face of that heading. Use `shortName` only in the document title suffix if the full name is already in the page title.
+Use `name` in the footer and document title. Use `homeGreetingPrefix` plus `givenName` in the home heading. `legalGivenName` is the hover and tap face of the given name. The rest of the greeting stays put. Use `shortName` only in the document title suffix if the full name is already in the page title.
 
 ### Writing collection
 
@@ -253,7 +254,7 @@ Every page uses `Base.astro`. Pass `title` and `description` for `<title>` and m
 
 No page-title heading other than the name.
 
-1. `h1`: Stanley Cheung. Hover the name to peek `Yin`; leave to restore `Stanley`. The hover box stays as wide as Stanley Cheung so the letters can slide without dropping hover. On a phone, tap toggles and stays until you tap again. The accessible heading remains Stanley Cheung.
+1. `h1`: Hi 👋, I'm Stanley. Hover or tap to flip only `Stanley` to `Yin`. The greeting prefix does not move. The hit box stays as wide as the rest state so the name can flip without dropping hover or shrinking the line. On a phone, tap toggles and stays until you tap again. The accessible heading remains Hi 👋, I'm Stanley.
 2. One line in `--muted`: Software engineer and CS student at UBC.
 3. Tagline in body size, max-width the home column.
 4. Heading `Writing`, then the three latest posts via `PostList`. A text link under the list: “All writing”.
@@ -276,7 +277,7 @@ A list row is: title (serif, weight 600), date on the right on wide screens, sum
 3. Date as `<time datetime>`. Tags as plain muted words, not chips, only if present.
 4. Summary as a lede in `--muted`.
 5. Hairline.
-6. Body in `Prose.astro`, measure `38rem`.
+6. Body in `Prose.astro`, measure `48rem`.
 
 Prose rules:
 

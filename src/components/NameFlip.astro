@@ -2,14 +2,13 @@
 import { site } from '../data/site';
 ---
 
-<span class="name-flip-host" data-name-flip data-family={site.familyName}>
-	<span class="name-flip">
+<span class="name-flip-host" data-name-flip>
+	{site.homeGreetingPrefix}{' '}<span class="name-flip">
 		<span class="name-flip-inner">
 			<span class="name-flip-front">{site.givenName}</span>
-			<span class="name-flip-back" aria-hidden="true" data-legal={site.legalGivenName}></span>
+			<span class="name-flip-back" aria-hidden="true">{site.legalGivenName}</span>
 		</span>
 	</span>
-	{' '}{site.familyName}
 </span>
 
 <script>
@@ -38,12 +37,13 @@ import { site } from '../data/site';
 			return;
 		}
 
-		el.style.setProperty('--front-width', `${measureText(front, front.textContent ?? '')}px`);
-		el.style.setProperty('--back-width', `${measureText(front, back.dataset.legal ?? '')}px`);
-		el.style.setProperty(
-			'--host-width',
-			`${measureText(front, `${front.textContent ?? ''} ${el.dataset.family ?? ''}`)}px`,
+		const nameWidth = Math.max(
+			measureText(front, front.textContent ?? ''),
+			measureText(front, back.textContent ?? ''),
 		);
+		el.style.setProperty('--name-width', `${nameWidth}px`);
+		el.style.removeProperty('--host-width');
+		el.style.setProperty('--host-width', `${el.getBoundingClientRect().width}px`);
 	}
 
 	async function init(el: HTMLElement) {

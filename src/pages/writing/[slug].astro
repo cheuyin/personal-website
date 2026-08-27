@@ -26,7 +26,7 @@ const hasMermaid = post.body?.includes('```mermaid') ?? false;
 const words = formatWordCount(countWords(post.body ?? ''));
 ---
 
-<Base title={post.data.title} description={post.data.summary} ogType="article" measure="post">
+<Base title={post.data.title} description={post.data.summary} ogType="article">
 	<article>
 		<p class="mb-6 m-0 text-[0.9375rem]">
 			<a class="link" href="/writing">Writing</a>

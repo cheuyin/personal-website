@@ -77,24 +77,24 @@ html[data-theme='dark'] {
 @layer components {
 	.name-flip-host {
 		display: inline-block;
-		min-width: var(--host-width, max-content);
+		max-width: 100%;
+		min-width: min(100%, var(--host-width, max-content));
 		touch-action: manipulation;
 	}
 
 	.name-flip {
 		display: inline-grid;
 		vertical-align: baseline;
-		width: var(--front-width, max-content);
+		width: var(--name-width, max-content);
 		overflow-x: clip;
 		perspective: 18rem;
 		padding-block: 0.12em;
 		margin-block: -0.12em;
-		transition: width 480ms cubic-bezier(0.4, 0.05, 0.2, 1);
 	}
 
 	.name-flip-inner {
 		display: grid;
-		width: var(--front-width, max-content);
+		width: var(--name-width, max-content);
 		transform-style: preserve-3d;
 		transition: transform 480ms cubic-bezier(0.4, 0.05, 0.2, 1);
 	}
@@ -112,23 +112,11 @@ html[data-theme='dark'] {
 		transform: rotateX(180deg);
 	}
 
-	.name-flip-back::before {
-		content: attr(data-legal);
-	}
-
-	.name-flip-host.is-flipped .name-flip {
-		width: var(--back-width, max-content);
-	}
-
 	.name-flip-host.is-flipped .name-flip-inner {
 		transform: rotateX(180deg);
 	}
 
 	@media (hover: hover) {
-		.name-flip-host:hover .name-flip {
-			width: var(--back-width, max-content);
-		}
-
 		.name-flip-host:hover .name-flip-inner {
 			transform: rotateX(180deg);
 		}
@@ -206,7 +194,7 @@ html[data-theme='dark'] {
 	}
 
 	.prose-site {
-		max-width: 38rem;
+		max-width: 48rem;
 	}
 
 	.prose-site > :first-child {
@@ -336,7 +324,7 @@ html[data-theme='dark'] {
 
 	.prose-site pre.mermaid svg {
 		overflow: visible;
-		width: min(22rem, 100%);
+		width: min(36rem, 100%);
 		height: auto;
 	}
 

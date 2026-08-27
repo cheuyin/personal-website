@@ -35,7 +35,7 @@ We can make calculations like these across a large number of variables and equat
 For example, the equation above looks like this:
 
 ```mermaid
-flowchart TD
+flowchart LR
     a((a))
     b((b))
     c((c))

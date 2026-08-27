@@ -8,10 +8,9 @@ interface Props {
 	title?: string;
 	description: string;
 	ogType?: 'website' | 'article';
-	measure?: 'page' | 'post';
 }
 
-const { title, description, ogType = 'website', measure = 'page' } = Astro.props;
+const { title, description, ogType = 'website' } = Astro.props;
 const isHome = !title;
 const documentTitle = isHome ? site.name : `${title} · ${site.name}`;
 const canonical = new URL(Astro.url.pathname, Astro.site ?? site.url).href;
@@ -57,12 +56,7 @@ const canonical = new URL(Astro.url.pathname, Astro.site ?? site.url).href;
 		</script>
 	</head>
 	<body class="font-serif">
-		<div
-			class:list={[
-				'mx-auto flex min-h-screen flex-col px-5 sm:px-6',
-				measure === 'post' ? 'max-w-[38rem]' : 'max-w-[42rem]',
-			]}
-		>
+		<div class="mx-auto flex min-h-screen max-w-[48rem] flex-col px-5 sm:px-6">
 			<Nav />
 			<main class="flex-1 pt-12 pb-16">
 				<slot />
