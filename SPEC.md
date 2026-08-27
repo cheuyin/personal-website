@@ -174,7 +174,7 @@ export const site = {
   legalGivenName: "Yin",
   familyName: "Cheung",
   shortName: "Cheuyin",
-  homeGreetingPrefix: "Hi 👋, I'm",
+  homeGreetingPrefix: "Hi, I'm",
   role: "Software engineer and CS student at UBC",
   description:
     "I write about building software, and I ship products with agent systems.",
@@ -258,7 +258,7 @@ Every page uses `Base.astro`. Pass `title` and `description` for `<title>` and m
 
 No page-title heading other than the name.
 
-1. `h1`: Hi 👋, I'm Stanley. Hover or tap to flip only `Stanley` to `Yin`. The greeting prefix does not move. The hit box stays as wide as the rest state so the name can flip without dropping hover or shrinking the line. On a phone, tap toggles and stays until you tap again. The accessible heading remains Hi 👋, I'm Stanley.
+1. `h1`: Hi, I'm Stanley. Hover or tap to flip only `Stanley` to `Yin`. The greeting prefix does not move. The hit box stays as wide as the rest state so the name can flip without dropping hover or shrinking the line. On a phone, tap toggles and stays until you tap again. The accessible heading remains Hi, I'm Stanley.
 2. One line in `--muted`: Software engineer and CS student at UBC.
 3. Intro paragraphs from `intro`, in body size at the home column width. The copy is a short history, not a résumé, and it ends on why the site exists. There is no separate tagline line, because the intro already states what the site is for and saying it twice weakens both.
 4. Heading `Writing`, then the three latest posts via `PostList`. A text link under the list: “All writing”.
