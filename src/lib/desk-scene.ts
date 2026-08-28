@@ -264,6 +264,108 @@ function paperTexture(): THREE.CanvasTexture {
 	});
 }
 
+function hash2(x: number, y: number): number {
+	const s = Math.sin(x * 127.1 + y * 311.7) * 43758.5453;
+	return s - Math.floor(s);
+}
+
+function mixColor(a: number[], b: number[], t: number): number[] {
+	return [
+		a[0] + (b[0] - a[0]) * t,
+		a[1] + (b[1] - a[1]) * t,
+		a[2] + (b[2] - a[2]) * t,
+	];
+}
+
+function woodMaps(
+	width: number,
+	height: number,
+	kind: 'boards' | 'edge' | 'end' = 'boards',
+): { map: THREE.CanvasTexture; bumpMap: THREE.CanvasTexture } {
+	const color = document.createElement('canvas');
+	const bump = document.createElement('canvas');
+	color.width = bump.width = width;
+	color.height = bump.height = height;
+	const colorCtx = color.getContext('2d');
+	const bumpCtx = bump.getContext('2d');
+
+	if (!colorCtx || !bumpCtx) {
+		return { map: new THREE.CanvasTexture(color), bumpMap: new THREE.CanvasTexture(bump) };
+	}
+
+	const colorData = colorCtx.createImageData(width, height);
+	const bumpData = bumpCtx.createImageData(width, height);
+	const light = [216, 182, 140];
+	const mid = [184, 146, 106];
+	const dark = [138, 102, 70];
+	const plankCount = kind === 'edge' ? 1 : 5;
+
+	for (let y = 0; y < height; y += 1) {
+		for (let x = 0; x < width; x += 1) {
+			const nx = x / width;
+			const ny = y / height;
+			const plank = Math.min(plankCount - 1, Math.floor(ny * plankCount));
+			const plankY = (ny * plankCount) % 1;
+			const seed = hash2(plank + 1, 3.7);
+			const warp = Math.sin(ny * 7 + seed * 5) * 3.2 + Math.sin(ny * 17 + seed * 2) * 1.1;
+			let grain: number;
+
+			if (kind === 'end') {
+				const cx = ((plank + 0.5) / plankCount - ny) * 2.2;
+				const cy = (nx - 0.5) * 1.8;
+				const ring = Math.sqrt(cx * cx + cy * cy) * 14 + Math.sin(nx * 16 + seed) * 0.4;
+				grain = Math.sin(ring) * 0.12;
+			} else {
+				const along = x + warp + seed * 28;
+				grain = Math.sin(along * 0.13) * 0.12 + Math.sin(along * 0.41 + seed * 4) * 0.05;
+			}
+
+			const noise = (hash2(x * 0.51, y * 0.47) - 0.5) * 0.05;
+			const seamDist = Math.min(plankY, 1 - plankY);
+			const seam = kind === 'boards' ? Math.max(0, 0.034 - seamDist) * 3.6 : 0;
+			const streak = Math.pow(Math.max(0, Math.sin(ny * 18 + seed * 8) * Math.sin(nx * 2.4 + seed * 3)), 10) * 0.16;
+			const boardShift = (seed - 0.5) * 0.08;
+			const t = Math.min(1, Math.max(0, 0.56 + grain + boardShift + noise - seam - streak));
+			const rgb = t < 0.5 ? mixColor(dark, mid, t * 2) : mixColor(mid, light, (t - 0.5) * 2);
+			const i = (y * width + x) * 4;
+			colorData.data[i] = rgb[0];
+			colorData.data[i + 1] = rgb[1];
+			colorData.data[i + 2] = rgb[2];
+			colorData.data[i + 3] = 255;
+			const bumpV = Math.min(255, Math.max(0, 128 + grain * 130 - seam * 70 - streak * 80 + noise * 50));
+			bumpData.data[i] = bumpData.data[i + 1] = bumpData.data[i + 2] = bumpV;
+			bumpData.data[i + 3] = 255;
+		}
+	}
+
+	colorCtx.putImageData(colorData, 0, 0);
+	bumpCtx.putImageData(bumpData, 0, 0);
+
+	const map = new THREE.CanvasTexture(color);
+	const bumpMap = new THREE.CanvasTexture(bump);
+	map.colorSpace = THREE.SRGBColorSpace;
+	map.anisotropy = 8;
+	bumpMap.anisotropy = 8;
+	return { map, bumpMap };
+}
+
+function woodMaterial(
+	maps: { map: THREE.CanvasTexture; bumpMap: THREE.CanvasTexture },
+	extras: THREE.MeshStandardMaterialParameters = {},
+): THREE.MeshStandardMaterial {
+	const material = new THREE.MeshStandardMaterial({
+		map: maps.map,
+		bumpMap: maps.bumpMap,
+		bumpScale: 0.014,
+		roughness: 0.62,
+		metalness: 0,
+		envMapIntensity: 0.2,
+		...extras,
+	});
+	material.userData.baseColor = material.color.getHex();
+	return material;
+}
+
 function hexGeometry(radius: number, length: number): THREE.ExtrudeGeometry {
 	const shape = new THREE.Shape();
 
@@ -609,8 +711,78 @@ function makePlant(): THREE.Group {
 	return plant;
 }
 
+function makeTable(width: number, depth: number): THREE.Group {
+	const table = new THREE.Group();
+	const thickness = 0.16;
+	const legH = 0.62;
+	const topMaps = woodMaps(1024, 512, 'boards');
+	const edgeMaps = woodMaps(1024, 128, 'edge');
+	const endMaps = woodMaps(512, 256, 'end');
+	const topMat = woodMaterial(topMaps, { roughness: 0.5, envMapIntensity: 0.24, bumpScale: 0.02 });
+	const edgeMat = woodMaterial(edgeMaps, { roughness: 0.64, bumpScale: 0.01 });
+	const endMat = woodMaterial(endMaps, { roughness: 0.7, bumpScale: 0.01 });
+	const bottomMat = woodMaterial(edgeMaps, { roughness: 0.86, bumpScale: 0.006, envMapIntensity: 0.08 });
+	const top = new THREE.Mesh(new THREE.BoxGeometry(width, thickness, depth), [
+		endMat,
+		endMat,
+		topMat,
+		bottomMat,
+		edgeMat,
+		edgeMat,
+	]);
+	top.position.y = -thickness / 2;
+	top.castShadow = true;
+	top.receiveShadow = true;
+	top.userData.part = 'wood';
+	table.add(top);
+
+	const apronH = 0.11;
+	const apronT = 0.07;
+	const apronY = -thickness - apronH / 2;
+	const apronMat = woodMaterial(edgeMaps, { roughness: 0.7, bumpScale: 0.016, color: 0xe8d3b0 });
+	const front = new THREE.Mesh(new THREE.BoxGeometry(width - 0.18, apronH, apronT), apronMat);
+	front.position.set(0, apronY, depth / 2 - apronT / 2 - 0.02);
+	const back = front.clone();
+	back.position.z = -front.position.z;
+	const sideGeo = new THREE.BoxGeometry(apronT, apronH, depth - 0.18);
+	const left = new THREE.Mesh(sideGeo, apronMat);
+	left.position.set(-width / 2 + apronT / 2 + 0.02, apronY, 0);
+	const right = left.clone();
+	right.position.x = -left.position.x;
+
+	for (const apron of [front, back, left, right]) {
+		apron.castShadow = true;
+		apron.receiveShadow = true;
+		apron.userData.part = 'wood';
+		table.add(apron);
+	}
+
+	const legW = 0.15;
+	const inset = 0.2;
+	const legMaps = woodMaps(256, 512, 'edge');
+	const legMat = woodMaterial(legMaps, { roughness: 0.72, bumpScale: 0.02, color: 0xe4cc9f });
+	const corners = [
+		[width / 2 - inset, depth / 2 - inset],
+		[-width / 2 + inset, depth / 2 - inset],
+		[width / 2 - inset, -depth / 2 + inset],
+		[-width / 2 + inset, -depth / 2 + inset],
+	] as const;
+
+	for (const [x, z] of corners) {
+		const leg = new THREE.Mesh(new THREE.BoxGeometry(legW, legH, legW), legMat);
+		leg.position.set(x, -thickness - apronH * 0.15 - legH / 2, z);
+		leg.castShadow = true;
+		leg.receiveShadow = true;
+		leg.userData.part = 'wood';
+		table.add(leg);
+	}
+
+	return table;
+}
+
 function buildStillLife(): THREE.Group {
 	const still = new THREE.Group();
+	const props = new THREE.Group();
 	const laptop = makeLaptop();
 	laptop.position.set(0, 0, 0);
 	laptop.rotation.y = 0.08;
@@ -631,10 +803,19 @@ function buildStillLife(): THREE.Group {
 	plant.rotation.y = 0.3;
 	plant.scale.setScalar(1.28);
 
-	still.add(laptop, paper, pen, cup, plant);
-	const bounds = new THREE.Box3().setFromObject(still);
+	props.add(laptop, paper, pen, cup, plant);
+
+	const bounds = new THREE.Box3().setFromObject(props);
+	const size = bounds.getSize(new THREE.Vector3());
 	const center = bounds.getCenter(new THREE.Vector3());
-	still.position.set(-center.x, -bounds.min.y, -center.z);
+	const table = makeTable(size.x + 1.85, size.z + 1.7);
+	table.position.set(center.x, bounds.min.y, center.z + 0.18);
+	props.position.y = 0.008;
+
+	still.add(table, props);
+	const full = new THREE.Box3().setFromObject(still);
+	const fullCenter = full.getCenter(new THREE.Vector3());
+	still.position.set(-fullCenter.x, -full.min.y, -fullCenter.z);
 	return still;
 }
 
@@ -667,7 +848,7 @@ export function mountDeskStill(canvas: HTMLCanvasElement): () => void {
 
 	const scene = new THREE.Scene();
 	const camera = new THREE.PerspectiveCamera(32, 1, 0.1, 40);
-	camera.position.set(0.12, 2.65, 7.45);
+	camera.position.set(0.12, 3.35, 8.2);
 
 	const pmrem = new THREE.PMREMGenerator(renderer);
 	scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.08).texture;
@@ -684,11 +865,11 @@ export function mountDeskStill(canvas: HTMLCanvasElement): () => void {
 	key.shadow.normalBias = 0.05;
 	key.shadow.radius = 3;
 	key.shadow.camera.near = 2;
-	key.shadow.camera.far = 24;
-	key.shadow.camera.left = -6;
-	key.shadow.camera.right = 6;
-	key.shadow.camera.top = 6;
-	key.shadow.camera.bottom = -6;
+	key.shadow.camera.far = 28;
+	key.shadow.camera.left = -7;
+	key.shadow.camera.right = 7;
+	key.shadow.camera.top = 7;
+	key.shadow.camera.bottom = -7;
 	key.shadow.camera.updateProjectionMatrix();
 	scene.add(key);
 
@@ -700,7 +881,7 @@ export function mountDeskStill(canvas: HTMLCanvasElement): () => void {
 	rim.position.set(-1.4, 4.2, -5.8);
 	scene.add(rim);
 
-	const floor = new THREE.Mesh(new THREE.PlaneGeometry(16, 16), new THREE.ShadowMaterial({ opacity: 0.18 }));
+	const floor = new THREE.Mesh(new THREE.PlaneGeometry(18, 18), new THREE.ShadowMaterial({ opacity: 0.16 }));
 	floor.rotation.x = -Math.PI / 2;
 	floor.receiveShadow = true;
 	scene.add(floor);
@@ -716,9 +897,9 @@ export function mountDeskStill(canvas: HTMLCanvasElement): () => void {
 	controls.dampingFactor = 0.08;
 	controls.autoRotate = !reducedMotion;
 	controls.autoRotateSpeed = 0.55;
-	controls.minPolarAngle = 0.88;
-	controls.maxPolarAngle = 1.28;
-	controls.target.set(0, 0.72, 0.08);
+	controls.minPolarAngle = 0.92;
+	controls.maxPolarAngle = 1.32;
+	controls.target.set(0, 1.42, 0.08);
 	controls.update();
 
 	function syncLights(): void {
@@ -727,25 +908,36 @@ export function mountDeskStill(canvas: HTMLCanvasElement): () => void {
 		key.intensity = dark ? 1.02 : 0.96;
 		fill.intensity = dark ? 0.42 : 0.22;
 		rim.intensity = dark ? 0.55 : 0.38;
-		floor.material.opacity = dark ? 0.4 : 0.18;
+		floor.material.opacity = dark ? 0.36 : 0.16;
 		scene.environmentIntensity = dark ? 0.38 : 0.48;
 		still.traverse((child) => {
 			if (!(child instanceof THREE.Mesh)) {
 				return;
 			}
 
-			const material = child.material;
+			const materials = Array.isArray(child.material) ? child.material : [child.material];
 
-			if (!(material instanceof THREE.MeshStandardMaterial)) {
-				return;
-			}
+			for (const material of materials) {
+				if (!(material instanceof THREE.MeshStandardMaterial)) {
+					continue;
+				}
 
-			if (child.userData.part === 'shell') {
-				material.color.set(dark ? SHELL_DARK : SHELL);
-			}
+				if (child.userData.part === 'shell') {
+					material.color.set(dark ? SHELL_DARK : SHELL);
+				}
 
-			if (child.userData.part === 'logo') {
-				material.color.set(dark ? LOGO_DARK : LOGO);
+				if (child.userData.part === 'logo') {
+					material.color.set(dark ? LOGO_DARK : LOGO);
+				}
+
+				if (child.userData.part === 'wood') {
+					const base = material.userData.baseColor ?? 0xffffff;
+					material.color.setHex(base);
+
+					if (dark) {
+						material.color.multiplyScalar(0.58);
+					}
+				}
 			}
 		});
 	}
@@ -771,7 +963,7 @@ export function mountDeskStill(canvas: HTMLCanvasElement): () => void {
 		height = nextHeight;
 		renderer.setSize(width, height, false);
 		camera.aspect = width / height;
-		const distance = camera.aspect < 1.45 ? 8.6 : 7.45;
+		const distance = camera.aspect < 1.45 ? 9.4 : 8.2;
 		const offset = camera.position.clone().sub(controls.target).normalize().multiplyScalar(distance);
 		camera.position.copy(controls.target).add(offset);
 		camera.updateProjectionMatrix();
