@@ -6,10 +6,10 @@ import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.j
 const PAPER = 0xf1f0e8;
 const MUTED = 0x5c6358;
 const ACCENT = 0x3d6b4f;
-const SHELL = 0x58595d;
-const SHELL_DARK = 0x58595d;
-const LOGO = 0x3f4044;
-const LOGO_DARK = 0x3f4044;
+const SHELL = 0xb9bec5;
+const SHELL_DARK = 0x989ea7;
+const LOGO = 0x8f949b;
+const LOGO_DARK = 0x6f747b;
 const BIC_BLUE = 0x1e5f9e;
 const BIC_INK = 0x14325c;
 
@@ -388,39 +388,28 @@ function hexGeometry(radius: number, length: number): THREE.ExtrudeGeometry {
 	return geometry;
 }
 
-function pearBodyShape(): THREE.Shape {
+function appleBodyShape(): THREE.Shape {
 	const shape = new THREE.Shape();
-	shape.moveTo(0, 0.46);
-	shape.bezierCurveTo(0.05, 0.46, 0.11, 0.41, 0.12, 0.31);
-	shape.bezierCurveTo(0.09, 0.27, 0.07, 0.18, 0.13, 0.12);
-	shape.bezierCurveTo(0.22, 0.05, 0.24, -0.04, 0.17, -0.1);
-	shape.bezierCurveTo(0.34, -0.18, 0.46, -0.34, 0.4, -0.52);
-	shape.bezierCurveTo(0.34, -0.68, 0.16, -0.76, 0, -0.76);
-	shape.bezierCurveTo(-0.16, -0.76, -0.34, -0.68, -0.4, -0.52);
-	shape.bezierCurveTo(-0.46, -0.34, -0.34, -0.18, -0.17, -0.1);
-	shape.bezierCurveTo(-0.15, 0.02, -0.15, 0.16, -0.12, 0.31);
-	shape.bezierCurveTo(-0.11, 0.41, -0.05, 0.46, 0, 0.46);
+	shape.moveTo(0, 0.42);
+	shape.bezierCurveTo(0.1, 0.46, 0.22, 0.4, 0.34, 0.28);
+	shape.bezierCurveTo(0.5, 0.12, 0.52, -0.15, 0.42, -0.38);
+	shape.bezierCurveTo(0.32, -0.6, 0.14, -0.72, 0, -0.72);
+	shape.bezierCurveTo(-0.14, -0.72, -0.32, -0.6, -0.42, -0.38);
+	shape.bezierCurveTo(-0.52, -0.15, -0.5, 0.12, -0.34, 0.28);
+	shape.bezierCurveTo(-0.22, 0.4, -0.1, 0.46, 0, 0.42);
 	return shape;
 }
 
-function pearLeafShape(): THREE.Shape {
+function appleStemShape(): THREE.Shape {
 	const shape = new THREE.Shape();
-	shape.moveTo(0.02, 0.5);
-	shape.bezierCurveTo(0.12, 0.66, 0.3, 0.7, 0.36, 0.56);
-	shape.bezierCurveTo(0.34, 0.4, 0.14, 0.42, 0.02, 0.5);
-	return shape;
-}
-
-function pearStemShape(): THREE.Shape {
-	const shape = new THREE.Shape();
-	shape.moveTo(-0.02, 0.46);
-	shape.bezierCurveTo(-0.04, 0.6, 0, 0.72, 0.035, 0.76);
-	shape.bezierCurveTo(0.04, 0.62, 0.02, 0.52, 0.016, 0.46);
+	shape.moveTo(-0.015, 0.4);
+	shape.bezierCurveTo(-0.03, 0.52, 0, 0.64, 0.03, 0.68);
+	shape.bezierCurveTo(0.035, 0.56, 0.015, 0.48, 0.012, 0.4);
 	shape.closePath();
 	return shape;
 }
 
-function makeFruitLogo(scale = 0.58): THREE.Group {
+function makeAppleLogo(scale = 0.58): THREE.Group {
 	const logo = new THREE.Group();
 	const settings: THREE.ExtrudeGeometryOptions = {
 		depth: 0.03,
@@ -429,7 +418,7 @@ function makeFruitLogo(scale = 0.58): THREE.Group {
 		bevelSize: 0.006,
 		bevelSegments: 2,
 	};
-	const material = mat(LOGO, { roughness: 0.32, metalness: 0.45, envMapIntensity: 0.35 });
+	const material = mat(LOGO, { roughness: 0.4, metalness: 0.4, envMapIntensity: 0.7 });
 	const mesh = (shape: THREE.Shape) => {
 		const part = new THREE.Mesh(new THREE.ExtrudeGeometry(shape, settings), material);
 		part.castShadow = true;
@@ -437,14 +426,8 @@ function makeFruitLogo(scale = 0.58): THREE.Group {
 		logo.add(part);
 	};
 
-	mesh(pearBodyShape());
-	const leaf = new THREE.Mesh(
-		new THREE.ExtrudeGeometry(pearLeafShape(), settings),
-		mat(ACCENT, { roughness: 0.42, metalness: 0.12 }),
-	);
-	leaf.castShadow = true;
-	logo.add(leaf);
-	mesh(pearStemShape());
+	mesh(appleBodyShape());
+	mesh(appleStemShape());
 	logo.scale.setScalar(scale);
 	return logo;
 }
@@ -455,7 +438,7 @@ function makeLaptop(): THREE.Group {
 	const baseH = 0.11;
 	const lidH = 0.05;
 	const laptop = new THREE.Group();
-	const shell = mat(SHELL, { roughness: 0.56, metalness: 0.16, envMapIntensity: 0.22 });
+	const shell = mat(SHELL, { roughness: 0.28, metalness: 0.72, envMapIntensity: 0.52 });
 
 	const base = new THREE.Mesh(new RoundedBoxGeometry(width, baseH, depth, 3, 0.04), shell);
 	base.position.y = baseH / 2;
@@ -475,7 +458,7 @@ function makeLaptop(): THREE.Group {
 
 	const pad = new THREE.Mesh(
 		new RoundedBoxGeometry(width * 0.43, 0.012, depth * 0.4, 2, 0.035),
-		mat(0x5a5b5f, { roughness: 0.22, metalness: 0.2, envMapIntensity: 0.3 }),
+		mat(0x7f858d, { roughness: 0.24, metalness: 0.46, envMapIntensity: 0.4 }),
 	);
 	pad.position.set(0, baseH + 0.008, 0.58);
 	laptop.add(pad);
@@ -515,7 +498,7 @@ function makeLaptop(): THREE.Group {
 	screen.position.set(0, -0.002, depth / 2);
 	lid.add(screen);
 
-	const logo = makeFruitLogo(0.62);
+	const logo = makeAppleLogo(0.34);
 	logo.rotation.set(-Math.PI / 2, 0, Math.PI);
 	logo.position.set(0, lidH + 0.02, depth / 2);
 	logo.traverse((child) => {
@@ -525,7 +508,7 @@ function makeLaptop(): THREE.Group {
 	});
 	lid.add(logo);
 
-	const chin = makeFruitLogo(0.13);
+	const chin = makeAppleLogo(0.08);
 	chin.rotation.set(Math.PI / 2, 0, Math.PI);
 	chin.position.set(0, -0.008, 0.2);
 	chin.traverse((child) => {
