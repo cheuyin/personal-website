@@ -3,26 +3,102 @@ import ContactIcon from './ContactIcon.astro';
 import { projects } from '../data/site';
 ---
 
-<div>
+<div class="flex flex-col gap-10 sm:gap-12">
 	{
 		projects.map((project) => (
-			<article class="row">
-				<h2 class="m-0 text-[1.25rem] font-semibold leading-snug tracking-[-0.02em]">
-					<a class="link" href={project.href} target="_blank" rel="noreferrer">
-						{project.title}
-					</a>
-					<a
-						class="contact-link ml-2 align-middle"
-						href={project.href}
-						target="_blank"
-						rel="noreferrer"
-						aria-label={`${project.title} on GitHub`}
-						title="GitHub"
-					>
-						<ContactIcon name="GitHub" />
-					</a>
-				</h2>
-				<p class="mt-2 m-0 text-[1.05rem] leading-7 text-muted">{project.summary}</p>
+			<article class="grid grid-cols-1 gap-6 sm:grid-cols-2 sm:gap-8 items-center">
+				<div class="w-full">
+					{project.image ? (
+						<a
+							href={project.href}
+							target="_blank"
+							rel="noreferrer"
+							aria-label={`Visit ${project.title}`}
+							class="group relative flex aspect-[16/10] w-full items-center justify-center overflow-hidden rounded-xl sm:rounded-2xl border border-rule bg-paper-deep/50 shadow-[0_2px_10px_rgba(0,0,0,0.03)] transition hover:border-accent/50 dark:bg-paper-deep/30 dark:shadow-[0_4px_16px_rgba(0,0,0,0.3)]"
+						>
+							<img
+								src={project.image}
+								alt={`${project.title} preview`}
+								class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+								loading="lazy"
+							/>
+						</a>
+					) : (
+						<a
+							href={project.href}
+							target="_blank"
+							rel="noreferrer"
+							aria-label={`Visit ${project.title}`}
+							class="group relative flex aspect-[16/10] w-full select-none flex-col justify-between overflow-hidden rounded-xl sm:rounded-2xl border border-rule bg-paper-deep/50 p-4 shadow-[0_2px_10px_rgba(0,0,0,0.03)] transition hover:border-accent/50 sm:p-5 dark:bg-paper-deep/30 dark:shadow-[0_4px_16px_rgba(0,0,0,0.3)]"
+						>
+							<div class="my-auto space-y-1 font-mono text-[0.75rem] leading-relaxed sm:space-y-1.5 sm:text-[0.8125rem]">
+								{project.preview?.map((line) => (
+									<div class="truncate">
+										{line.label && (
+											<span class="mr-1.5 font-bold text-accent">
+												{line.label}
+											</span>
+										)}
+										{line.text && (
+											<span class={line.isMuted ? 'text-muted' : 'text-ink'}>
+												{line.text}
+											</span>
+										)}
+										{line.highlight && (
+											<span class="mx-0.5 font-bold text-accent">
+												{line.highlight}
+											</span>
+										)}
+										{line.suffix && (
+											<span class={line.isMuted ? 'text-muted' : 'text-ink'}>
+												{line.suffix}
+											</span>
+										)}
+									</div>
+								))}
+							</div>
+
+							<div class="flex justify-end">
+								<svg
+									class="h-3.5 w-3.5 text-rule/70 transition-colors group-hover:text-accent dark:text-rule/40"
+									viewBox="0 0 24 24"
+									fill="currentColor"
+									aria-hidden="true"
+								>
+									<path d="M12 2L2 12l10 10 10-10L12 2z" />
+								</svg>
+							</div>
+						</a>
+					)}
+				</div>
+
+				<div class="flex flex-col">
+					<h2 class="m-0 text-[1.25rem] font-semibold leading-snug tracking-[-0.02em] text-ink sm:text-[1.35rem]">
+						<a
+							class="link inline-flex items-center gap-2"
+							href={project.github || project.href}
+							target="_blank"
+							rel="noreferrer"
+							aria-label={`${project.title} on GitHub`}
+						>
+							<span>{project.title}</span>
+							{project.github && (
+								<span class="inline-flex h-[1.1rem] w-[1.1rem] shrink-0 items-center justify-center [&>svg]:block [&>svg]:h-full [&>svg]:w-full">
+									<ContactIcon name="GitHub" />
+								</span>
+							)}
+						</a>
+					</h2>
+					<p class="mt-1 m-0 font-mono text-[0.875rem] text-faint">
+						{project.dates}
+					</p>
+					<p class="mt-3.5 m-0 font-mono text-[0.875rem] leading-relaxed text-muted sm:text-[0.9375rem]">
+						{project.summary}
+					</p>
+					<p class="mt-3.5 m-0 font-mono text-[0.8125rem] text-faint sm:text-[0.875rem]">
+						{project.stack.join(' · ')}
+					</p>
+				</div>
 			</article>
 		))
 	}

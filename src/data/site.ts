@@ -66,30 +66,72 @@ export const intro: IntroSegment[][] = [
 	],
 ];
 
+export type ProjectPreviewLine = {
+	label?: string;
+	text?: string;
+	highlight?: string;
+	suffix?: string;
+	isMuted?: boolean;
+};
+
 export type Project = {
 	title: string;
+	dates: string;
 	summary: string;
+	stack: string[];
 	href: string;
+	github?: string;
+	image?: string;
+	preview?: ProjectPreviewLine[];
 };
 
 export const projects: Project[] = [
 	{
 		title: 'CreateYourStory.ai',
+		dates: 'Jun 2026 – Jul 2026',
 		summary:
 			'Choose-your-own-adventure story generator with a Python backend, branching narratives, and a live demo on Render.',
-		href: 'https://github.com/cheuyin/createyourstory.ai',
+		stack: ['Python', 'FastAPI', 'React', 'SQLite'],
+		href: 'https://createyourstory-ai-backend.onrender.com/',
+		github: 'https://github.com/cheuyin/createyourstory.ai',
+		image: '/projects/createyourstory.jpg',
+		preview: [
+			{ label: 'POST', text: '/api/story/generate' },
+			{ label: 'TREE', text: 'depth 4 · nodes 15' },
+			{ text: '▸ branch: choose torch path', isMuted: true },
+			{ text: 'stream · tokens ', highlight: '1.2k', suffix: ' · 240ms', isMuted: true },
+		],
 	},
 	{
 		title: 'Local AI Coding Agent',
+		dates: 'May 2026 – Jun 2026',
 		summary:
 			'Terminal coding agent using Gemini that can read, write, and run files in a sandboxed workspace.',
+		stack: ['Python', 'Gemini API', 'CLI'],
 		href: 'https://github.com/cheuyin/ai-agent-python',
+		github: 'https://github.com/cheuyin/ai-agent-python',
+		preview: [
+			{ label: 'INIT', text: 'gemini-3.7-flash' },
+			{ label: 'EXEC', text: 'sandbox workspace' },
+			{ text: '▸ diff applied · 3 files', isMuted: true },
+			{ text: 'eval · tests ', highlight: '12/12', suffix: ' passed', isMuted: true },
+		],
 	},
 	{
 		title: 'AutoDater',
+		dates: 'May 2025 – Jul 2026',
 		summary:
 			'Obsidian plugin that keeps Created and Updated dates in Markdown frontmatter up to date. TypeScript, zero config.',
-		href: 'https://github.com/cheuyin/autodater',
+		stack: ['TypeScript', 'Obsidian API'],
+		href: 'https://community.obsidian.md/plugins/autodater',
+		github: 'https://github.com/cheuyin/autodater',
+		image: '/projects/autodater.png',
+		preview: [
+			{ label: 'HOOK', text: 'vault.on("modify")' },
+			{ label: 'SYNC', text: 'frontmatter yaml' },
+			{ text: '▸ updated: 2026-08-27', isMuted: true },
+			{ text: 'state · tracked ', highlight: '142', suffix: ' files', isMuted: true },
+		],
 	},
 ];
 

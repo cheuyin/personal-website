@@ -1,20 +1,199 @@
-<div class="desk-still" data-desk-still>
+<div
+	class="desk-still relative overflow-hidden rounded-xl sm:rounded-2xl border border-rule/60 bg-paper-deep/30 shadow-[0_2px_10px_rgba(0,0,0,0.03)] dark:bg-paper-deep/20 dark:shadow-[0_4px_16px_rgba(0,0,0,0.3)]"
+	data-desk-still
+>
 	<canvas
-		class="desk-still-canvas"
+		class="desk-still-canvas opacity-0 transition-opacity duration-500"
 		tabindex="0"
 		role="img"
 		aria-label="A small 3D still life of a silvery metallic laptop with a matching silver apple logo, a potted plant, a ceramic cup of black coffee, and a ballpoint pen on paper, all sitting on a wooden table. Drag or use the arrow keys to turn it."
 	></canvas>
+
+	<!-- Clean Loading Spinner -->
+	<div
+		class="absolute inset-0 flex flex-col items-center justify-center gap-3 transition-opacity duration-300 pointer-events-none"
+		data-desk-spinner
+	>
+		<div class="h-6 w-6 animate-spin rounded-full border-2 border-rule border-t-accent"></div>
+		<span class="font-mono text-[0.75rem] text-faint">Loading 3D workspace...</span>
+	</div>
+
+	<!-- Fallback for slow connection / weak devices / WebGL failure -->
+	<div
+		class="absolute inset-0 hidden flex-col items-center justify-center p-6 text-center select-none"
+		data-desk-fallback
+	>
+		<!-- Stylized minimal vector illustration of the desk still life -->
+		<svg
+			class="h-20 w-36 text-muted/70"
+			viewBox="0 0 160 90"
+			fill="none"
+			stroke="currentColor"
+			stroke-width="1.5"
+			stroke-linecap="round"
+			stroke-linejoin="round"
+			aria-hidden="true"
+		>
+			<!-- Table line -->
+			<line x1="12" y1="74" x2="148" y2="74" stroke-width="1.5" class="stroke-rule" />
+
+			<!-- Plant in pot -->
+			<path d="M24 54 L36 54 L34 66 L26 66 Z" class="fill-paper-deep/60 stroke-muted" />
+			<path d="M30 54 C27 46 20 46 22 40 C26 44 29 48 30 54" class="fill-accent/20 stroke-accent" />
+			<path d="M30 54 C33 44 40 45 38 38 C34 42 31 47 30 54" class="fill-accent/20 stroke-accent" />
+			<path d="M30 54 C30 45 30 40 30 36" class="stroke-accent" />
+
+			<!-- Laptop -->
+			<path d="M46 64 L54 36 L92 36 L100 64 Z" class="fill-paper-deep/40 stroke-muted" />
+			<line x1="40" y1="65" x2="106" y2="65" stroke-width="2" class="stroke-muted" />
+			<!-- Screen area & code lines -->
+			<rect x="58" y="42" width="30" height="17" rx="1" class="fill-paper stroke-rule" />
+			<line x1="62" y1="46" x2="74" y2="46" stroke-width="1.2" class="stroke-accent" />
+			<line x1="62" y1="50" x2="82" y2="50" stroke-width="1.2" class="stroke-muted/60" />
+			<line x1="62" y1="54" x2="78" y2="54" stroke-width="1.2" class="stroke-muted/60" />
+
+			<!-- Ceramic Coffee Cup -->
+			<path d="M114 52 L126 52 L124 65 L116 65 Z" class="fill-paper-deep/60 stroke-muted" />
+			<path d="M126 55 C130 55 130 62 125 62" class="stroke-muted" />
+			<!-- Steam -->
+			<path d="M118 47 C118 44 121 43 121 40" stroke-width="1" class="stroke-accent/50" />
+			<path d="M122 46 C122 43 125 42 125 39" stroke-width="1" class="stroke-accent/50" />
+
+			<!-- Pen & Notebook -->
+			<line x1="134" y1="65" x2="146" y2="65" stroke-width="2" class="stroke-rule" />
+			<line x1="137" y1="61" x2="144" y2="69" stroke-width="1.5" class="stroke-accent" />
+		</svg>
+
+		<p class="mt-2.5 m-0 font-mono text-[0.8125rem] text-muted" data-fallback-reason>
+			3D scene paused to save data & performance.
+		</p>
+		<button
+			type="button"
+			class="mt-3.5 inline-flex items-center gap-1.5 rounded-lg border border-rule bg-paper px-3 py-1.5 font-mono text-[0.75rem] font-medium text-ink transition hover:border-accent hover:text-accent cursor-pointer shadow-xs"
+			data-desk-load-btn
+		>
+			<svg class="h-3 w-3" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+				<polygon points="5 3 19 12 5 21 5 3"></polygon>
+			</svg>
+			Load 3D Scene
+		</button>
+	</div>
 </div>
 
 <script>
-	import { mountDeskStill } from '../lib/desk-scene';
+	function isWebGLSupported(): boolean {
+		try {
+			const testCanvas = document.createElement('canvas');
+			return Boolean(
+				window.WebGLRenderingContext &&
+					(testCanvas.getContext('webgl2') ||
+						testCanvas.getContext('webgl') ||
+						testCanvas.getContext('experimental-webgl')),
+			);
+		} catch {
+			return false;
+		}
+	}
+
+	function isConstrainedDeviceOrNetwork(): boolean {
+		if (typeof window !== 'undefined' && window.location.search.includes('fallback')) {
+			return true;
+		}
+
+		if (typeof navigator === 'undefined') return false;
+
+		// Save-Data header or slow network
+		const nav = navigator as Navigator & {
+			connection?: { saveData?: boolean; effectiveType?: string };
+			mozConnection?: { saveData?: boolean; effectiveType?: string };
+			webkitConnection?: { saveData?: boolean; effectiveType?: string };
+			deviceMemory?: number;
+		};
+
+		const conn = nav.connection || nav.mozConnection || nav.webkitConnection;
+		if (conn) {
+			if (conn.saveData) return true;
+			if (conn.effectiveType === 'slow-2g' || conn.effectiveType === '2g') return true;
+		}
+
+		// Weak hardware: low RAM (< 2GB) or <= 1 CPU core
+		if (typeof nav.deviceMemory === 'number' && nav.deviceMemory < 2) return true;
+		if (typeof nav.hardwareConcurrency === 'number' && nav.hardwareConcurrency <= 1) return true;
+
+		return false;
+	}
 
 	for (const root of document.querySelectorAll<HTMLElement>('[data-desk-still]')) {
-		const canvas = root.querySelector('canvas');
+		const canvas = root.querySelector<HTMLCanvasElement>('canvas');
+		const spinner = root.querySelector<HTMLElement>('[data-desk-spinner]');
+		const fallback = root.querySelector<HTMLElement>('[data-desk-fallback]');
+		const loadBtn = root.querySelector<HTMLButtonElement>('[data-desk-load-btn]');
 
-		if (canvas) {
-			mountDeskStill(canvas);
+		if (!canvas || !spinner || !fallback) continue;
+
+		let isLoaded = false;
+		let timeoutId: number | undefined;
+
+		function showFallback(reasonMessage?: string) {
+			if (timeoutId) clearTimeout(timeoutId);
+			spinner.classList.add('opacity-0');
+			setTimeout(() => {
+				spinner.classList.add('hidden');
+			}, 300);
+			canvas.classList.add('hidden');
+			fallback.classList.remove('hidden');
+			fallback.classList.add('flex');
+			if (reasonMessage) {
+				const reasonElem = fallback.querySelector('[data-fallback-reason]');
+				if (reasonElem) {
+					reasonElem.textContent = reasonMessage;
+				}
+			}
+		}
+
+		async function loadScene() {
+			fallback.classList.add('hidden');
+			fallback.classList.remove('flex');
+			canvas.classList.remove('hidden');
+			spinner.classList.remove('hidden');
+			spinner.classList.remove('opacity-0');
+
+			// Timeout after 7 seconds for slow networks
+			timeoutId = window.setTimeout(() => {
+				if (!isLoaded) {
+					showFallback('Loading timed out. Click below to try again.');
+				}
+			}, 7000);
+
+			try {
+				const { mountDeskStill } = await import('../lib/desk-scene');
+				mountDeskStill(canvas, () => {
+					isLoaded = true;
+					if (timeoutId) clearTimeout(timeoutId);
+					canvas.classList.remove('opacity-0');
+					canvas.classList.add('opacity-100');
+					spinner.classList.add('opacity-0');
+					setTimeout(() => {
+						spinner.classList.add('hidden');
+					}, 350);
+				});
+			} catch {
+				showFallback('Could not load 3D scene on this device.');
+			}
+		}
+
+		if (!isWebGLSupported()) {
+			showFallback('WebGL is not supported on this browser.');
+		} else if (isConstrainedDeviceOrNetwork()) {
+			showFallback('3D scene paused to save data & battery on this device.');
+		} else {
+			loadScene();
+		}
+
+		if (loadBtn) {
+			loadBtn.addEventListener('click', () => {
+				loadScene();
+			});
 		}
 	}
 </script>

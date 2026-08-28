@@ -390,35 +390,47 @@ function hexGeometry(radius: number, length: number): THREE.ExtrudeGeometry {
 
 function appleBodyShape(): THREE.Shape {
 	const shape = new THREE.Shape();
-	shape.moveTo(0, 0.42);
-	shape.bezierCurveTo(0.1, 0.46, 0.22, 0.4, 0.34, 0.28);
-	shape.bezierCurveTo(0.5, 0.12, 0.52, -0.15, 0.42, -0.38);
-	shape.bezierCurveTo(0.32, -0.6, 0.14, -0.72, 0, -0.72);
-	shape.bezierCurveTo(-0.14, -0.72, -0.32, -0.6, -0.42, -0.38);
-	shape.bezierCurveTo(-0.52, -0.15, -0.5, 0.12, -0.34, 0.28);
-	shape.bezierCurveTo(-0.22, 0.4, -0.1, 0.46, 0, 0.42);
+	// Center top cleft
+	shape.moveTo(0, 0.334);
+	// Top right curve over crest
+	shape.bezierCurveTo(0.106, 0.405, 0.283, 0.387, 0.413, 0.29);
+	// Right shoulder down to top of bite
+	shape.bezierCurveTo(0.531, 0.202, 0.578, 0.079, 0.555, 0.026);
+	// Inward circular bite
+	shape.bezierCurveTo(0.448, -0.026, 0.342, -0.132, 0.413, -0.255);
+	shape.bezierCurveTo(0.472, -0.308, 0.543, -0.326, 0.543, -0.343);
+	// Right bottom lobe
+	shape.bezierCurveTo(0.543, -0.475, 0.448, -0.598, 0.271, -0.634);
+	// Bottom indentation
+	shape.bezierCurveTo(0.142, -0.66, 0.071, -0.598, 0, -0.563);
+	shape.bezierCurveTo(-0.071, -0.598, -0.142, -0.66, -0.271, -0.634);
+	// Left bottom lobe and full left flank
+	shape.bezierCurveTo(-0.448, -0.598, -0.566, -0.458, -0.566, -0.158);
+	shape.bezierCurveTo(-0.566, 0.088, -0.519, 0.202, -0.413, 0.29);
+	// Top left crest returning to center cleft
+	shape.bezierCurveTo(-0.283, 0.387, -0.106, 0.405, 0, 0.334);
 	return shape;
 }
 
 function appleStemShape(): THREE.Shape {
 	const shape = new THREE.Shape();
-	shape.moveTo(-0.015, 0.4);
-	shape.bezierCurveTo(-0.03, 0.52, 0, 0.64, 0.03, 0.68);
-	shape.bezierCurveTo(0.035, 0.56, 0.015, 0.48, 0.012, 0.4);
-	shape.closePath();
+	shape.moveTo(0.025, 0.38);
+	shape.bezierCurveTo(0.085, 0.53, 0.24, 0.65, 0.38, 0.67);
+	shape.bezierCurveTo(0.33, 0.50, 0.17, 0.40, 0.025, 0.38);
 	return shape;
 }
 
 function makeAppleLogo(scale = 0.58): THREE.Group {
 	const logo = new THREE.Group();
 	const settings: THREE.ExtrudeGeometryOptions = {
-		depth: 0.03,
+		depth: 0.02,
 		bevelEnabled: true,
-		bevelThickness: 0.008,
-		bevelSize: 0.006,
-		bevelSegments: 2,
+		bevelThickness: 0.003,
+		bevelSize: 0.002,
+		bevelSegments: 3,
+		curveSegments: 24,
 	};
-	const material = mat(LOGO, { roughness: 0.4, metalness: 0.4, envMapIntensity: 0.7 });
+	const material = mat(LOGO, { roughness: 0.24, metalness: 0.72, envMapIntensity: 0.8 });
 	const mesh = (shape: THREE.Shape) => {
 		const part = new THREE.Mesh(new THREE.ExtrudeGeometry(shape, settings), material);
 		part.castShadow = true;
@@ -446,6 +458,19 @@ function makeLaptop(): THREE.Group {
 	base.userData.part = 'shell';
 	laptop.add(base);
 
+	// Hinge clutch barrel bridging base and lid
+	const hingeRadius = 0.038;
+	const hingeLength = width * 0.78;
+	const hinge = new THREE.Mesh(
+		new THREE.CylinderGeometry(hingeRadius, hingeRadius, hingeLength, 20),
+		mat(0x181a1c, { roughness: 0.55, metalness: 0.25 }),
+	);
+	hinge.rotation.z = Math.PI / 2;
+	hinge.position.set(0, baseH * 0.88, -depth / 2 + 0.035);
+	hinge.castShadow = true;
+	hinge.receiveShadow = true;
+	laptop.add(hinge);
+
 	const deck = new THREE.Mesh(new THREE.PlaneGeometry(width * 0.9, depth * 0.38), new THREE.MeshStandardMaterial({
 		map: keyboardTexture(),
 		roughness: 0.62,
@@ -464,7 +489,7 @@ function makeLaptop(): THREE.Group {
 	laptop.add(pad);
 
 	const lid = new THREE.Group();
-	lid.position.set(0, baseH, -depth / 2);
+	lid.position.set(0, baseH * 0.88, -depth / 2 + 0.035);
 	lid.rotation.x = -1.78;
 
 	const panel = new THREE.Mesh(new RoundedBoxGeometry(width, lidH, depth, 3, 0.04), shell);
@@ -509,7 +534,7 @@ function makeLaptop(): THREE.Group {
 	lid.add(logo);
 
 	const chin = makeAppleLogo(0.08);
-	chin.rotation.set(Math.PI / 2, 0, Math.PI);
+	chin.rotation.set(Math.PI / 2, 0, 0);
 	chin.position.set(0, -0.008, 0.2);
 	chin.traverse((child) => {
 		if (child instanceof THREE.Mesh) {
@@ -806,7 +831,7 @@ function isDarkTheme(): boolean {
 	return document.documentElement.dataset.theme === 'dark';
 }
 
-export function mountDeskStill(canvas: HTMLCanvasElement): () => void {
+export function mountDeskStill(canvas: HTMLCanvasElement, onReady?: () => void): () => void {
 	const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 	let renderer: THREE.WebGLRenderer;
 
@@ -933,6 +958,7 @@ export function mountDeskStill(canvas: HTMLCanvasElement): () => void {
 	let height = 0;
 	let frame = 0;
 	let visible = true;
+	let hasRenderedFirstFrame = false;
 
 	function resize(): void {
 		const nextWidth = Math.max(1, canvas.clientWidth);
@@ -962,6 +988,13 @@ export function mountDeskStill(canvas: HTMLCanvasElement): () => void {
 		resize();
 		controls.update();
 		renderer.render(scene, camera);
+
+		if (!hasRenderedFirstFrame) {
+			hasRenderedFirstFrame = true;
+			if (onReady) {
+				onReady();
+			}
+		}
 	}
 
 	function onPointerDown(): void {
