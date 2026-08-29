@@ -1,8 +1,12 @@
 ---
 title: Notes on becoming an AI engineer in 2026
-date: 2026-08-28
-summary: ""
-tags: ["ai", "career", "llms", "engineering"]
+date: 2026-08-28T00:00:00.000Z
+summary: Some notes gathered from research on switching to AI engineering
+tags:
+  - ai
+  - career
+  - llms
+  - engineering
 ---
 
 My goal right now is to become an AI engineer and get either one last internship or a New Grad offer in 2027. LLMs are amazing and the pace of progress is astounding. As I'm writing this, Sam Altman is talking about an internal OpenAI model (Astra) that can invent useful new things.
