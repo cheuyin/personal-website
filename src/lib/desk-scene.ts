@@ -583,6 +583,7 @@ function makePen(): THREE.Group {
 
 function makeCup(): THREE.Group {
 	const cup = new THREE.Group();
+	cup.userData.easterEgg = '/grounds';
 	cup.scale.setScalar(1.18);
 	const ceramic = mat(0xb7ad9a, { roughness: 0.5, metalness: 0.02, envMapIntensity: 0.22 });
 	const profile = [
@@ -627,6 +628,13 @@ function makeCup(): THREE.Group {
 	const handle = new THREE.Mesh(new THREE.TubeGeometry(handleCurve, 28, 0.038, 12, false), ceramic);
 	handle.castShadow = true;
 	cup.add(handle);
+
+	const hit = new THREE.Mesh(
+		new THREE.CylinderGeometry(0.62, 0.55, 0.95, 16),
+		new THREE.MeshBasicMaterial({ visible: false }),
+	);
+	hit.position.set(0.12, 0.42, 0);
+	cup.add(hit);
 	return cup;
 }
 
@@ -827,6 +835,20 @@ function buildStillLife(): THREE.Group {
 	return still;
 }
 
+const EASTER_EGG_CLICK_PX = 10;
+
+function easterEggFrom(object: THREE.Object3D): string | undefined {
+	let current: THREE.Object3D | null = object;
+
+	while (current) {
+		if (typeof current.userData.easterEgg === 'string') {
+			return current.userData.easterEgg;
+		}
+
+		current = current.parent;
+	}
+}
+
 function isDarkTheme(): boolean {
 	return document.documentElement.dataset.theme === 'dark';
 }
@@ -897,6 +919,10 @@ export function mountDeskStill(canvas: HTMLCanvasElement, onReady?: () => void):
 	const still = buildStillLife();
 	scene.add(still);
 	key.target = still;
+
+	const raycaster = new THREE.Raycaster();
+	const pointerNdc = new THREE.Vector2();
+	let pointerStart: { x: number; y: number } | null = null;
 
 	const controls = new OrbitControls(camera, canvas);
 	controls.enablePan = false;
@@ -997,12 +1023,47 @@ export function mountDeskStill(canvas: HTMLCanvasElement, onReady?: () => void):
 		}
 	}
 
-	function onPointerDown(): void {
+	function onPointerDown(event: PointerEvent): void {
 		controls.autoRotate = false;
 		canvas.style.cursor = 'grabbing';
+		pointerStart = { x: event.clientX, y: event.clientY };
 	}
 
-	function onPointerUp(): void {
+	function onPointerUp(event: PointerEvent): void {
+		canvas.style.cursor = 'grab';
+
+		if (!pointerStart) {
+			return;
+		}
+
+		const dx = event.clientX - pointerStart.x;
+		const dy = event.clientY - pointerStart.y;
+		pointerStart = null;
+
+		if (dx * dx + dy * dy > EASTER_EGG_CLICK_PX * EASTER_EGG_CLICK_PX) {
+			return;
+		}
+
+		const rect = canvas.getBoundingClientRect();
+		if (rect.width === 0 || rect.height === 0) {
+			return;
+		}
+
+		pointerNdc.set(
+			((event.clientX - rect.left) / rect.width) * 2 - 1,
+			-((event.clientY - rect.top) / rect.height) * 2 + 1,
+		);
+		raycaster.setFromCamera(pointerNdc, camera);
+		const hit = raycaster.intersectObject(still, true)[0];
+		const href = hit ? easterEggFrom(hit.object) : undefined;
+
+		if (href) {
+			window.location.assign(href);
+		}
+	}
+
+	function onPointerCancel(): void {
+		pointerStart = null;
 		canvas.style.cursor = 'grab';
 	}
 
@@ -1024,6 +1085,7 @@ export function mountDeskStill(canvas: HTMLCanvasElement, onReady?: () => void):
 
 	canvas.addEventListener('pointerdown', onPointerDown);
 	canvas.addEventListener('pointerup', onPointerUp);
+	canvas.addEventListener('pointercancel', onPointerCancel);
 	canvas.addEventListener('keydown', onKeyDown);
 
 	const visibility = new IntersectionObserver((entries) => {
@@ -1045,6 +1107,7 @@ export function mountDeskStill(canvas: HTMLCanvasElement, onReady?: () => void):
 		renderer.dispose();
 		canvas.removeEventListener('pointerdown', onPointerDown);
 		canvas.removeEventListener('pointerup', onPointerUp);
+		canvas.removeEventListener('pointercancel', onPointerCancel);
 		canvas.removeEventListener('keydown', onKeyDown);
 	};
 }

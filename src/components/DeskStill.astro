@@ -53,11 +53,14 @@
 			<line x1="62" y1="54" x2="78" y2="54" stroke-width="1.2" class="stroke-muted/60" />
 
 			<!-- Ceramic Coffee Cup -->
-			<path d="M114 52 L126 52 L124 65 L116 65 Z" class="fill-paper-deep/60 stroke-muted" />
-			<path d="M126 55 C130 55 130 62 125 62" class="stroke-muted" />
-			<!-- Steam -->
-			<path d="M118 47 C118 44 121 43 121 40" stroke-width="1" class="stroke-accent/50" />
-			<path d="M122 46 C122 43 125 42 125 39" stroke-width="1" class="stroke-accent/50" />
+			<g data-desk-mug>
+				<rect x="110" y="38" width="24" height="30" fill="transparent" />
+				<path d="M114 52 L126 52 L124 65 L116 65 Z" class="fill-paper-deep/60 stroke-muted" />
+				<path d="M126 55 C130 55 130 62 125 62" class="stroke-muted" />
+				<!-- Steam -->
+				<path d="M118 47 C118 44 121 43 121 40" stroke-width="1" class="stroke-accent/50" />
+				<path d="M122 46 C122 43 125 42 125 39" stroke-width="1" class="stroke-accent/50" />
+			</g>
 
 			<!-- Pen & Notebook -->
 			<line x1="134" y1="65" x2="146" y2="65" stroke-width="2" class="stroke-rule" />
@@ -193,6 +196,14 @@
 		if (loadBtn) {
 			loadBtn.addEventListener('click', () => {
 				loadScene();
+			});
+		}
+
+		const mug = fallback.querySelector('[data-desk-mug]');
+		if (mug instanceof SVGElement) {
+			mug.style.cursor = 'pointer';
+			mug.addEventListener('click', () => {
+				window.location.assign('/grounds');
 			});
 		}
 	}

@@ -8,9 +8,10 @@ interface Props {
 	title?: string;
 	description: string;
 	ogType?: 'website' | 'article';
+	noindex?: boolean;
 }
 
-const { title, description, ogType = 'website' } = Astro.props;
+const { title, description, ogType = 'website', noindex = false } = Astro.props;
 const isHome = !title;
 const documentTitle = isHome ? site.name : `${title} · ${site.name}`;
 const canonical = new URL(Astro.url.pathname, Astro.site ?? site.url).href;
@@ -23,6 +24,7 @@ const canonical = new URL(Astro.url.pathname, Astro.site ?? site.url).href;
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<meta name="theme-color" content="#f1f0e8" />
 		<meta name="description" content={description} />
+		{noindex && <meta name="robots" content="noindex, nofollow" />}
 		<meta property="og:title" content={documentTitle} />
 		<meta property="og:description" content={description} />
 		<meta property="og:type" content={ogType} />
