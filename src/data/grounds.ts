@@ -1,3 +1,5 @@
+import groundsEntriesJson from './grounds.json';
+
 export type GroundsEntry = {
 	date: string;
 	note: string;
@@ -14,12 +16,7 @@ export type GroundsMonth = {
 	days: GroundsDay[];
 };
 
-export const groundsEntries: GroundsEntry[] = [
-	{
-		date: '2026-08-30',
-		note: 'Around 10 PM, I took Nala for a long walk without listening to music.',
-	},
-];
+export const groundsEntries: GroundsEntry[] = groundsEntriesJson;
 
 export function getGroundsLog(): GroundsDay[] {
 	const byDate = new Map<string, string[]>();

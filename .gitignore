@@ -16,6 +16,10 @@ pnpm-debug.log*
 # environment variables
 .env
 .env.*
+!.env.example
+
+# Google service account key for `npm run sync:grounds`
+secrets/google-service-account.json
 
 # macOS-specific files
 .DS_Store
