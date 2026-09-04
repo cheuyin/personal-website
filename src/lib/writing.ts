@@ -14,8 +14,8 @@ export function countWords(markdown: string): number {
 		.replace(/!\[[^\]]*\]\([^)]*\)/g, ' ')
 		.replace(/\[([^\]]+)\]\([^)]*\)/g, '$1')
 		.replace(/\$\$[\s\S]*?\$\$/g, ' ')
-		.replace(/\$[^$]+\$/g, ' ')
-		.replace(/[#>*_~|[\]()-]/g, ' ')
+		.replace(/(?<!\\)\$(?!\s)(?:[^\$\n\\]|\\.)+?(?<!\s)(?<!\\)\$/g, ' ')
+		.replace(/[#>*_~|[\]()\\-]/g, ' ')
 		.replace(/\s+/g, ' ')
 		.trim();
 
