@@ -1,5 +1,5 @@
 /**
- * Pull the willpower log from Google Sheets into src/data/grounds.json.
+ * Pull the discomfort log from Google Sheets into src/data/grounds.json.
  *
  * Reads Date (A) and Log (B) from the first tab, starting at row 2.
  * Auth is a service account JSON in GOOGLE_SERVICE_ACCOUNT_JSON or a

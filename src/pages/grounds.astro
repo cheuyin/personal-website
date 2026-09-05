@@ -5,11 +5,18 @@ import { dayNumber, getGroundsMonths } from '../data/grounds';
 const months = getGroundsMonths();
 ---
 
-<Base title="Willpower Log" description="A dated log of days I showed willpower." noindex>
+<Base
+	title="Discomfort Log"
+	description="The cave you fear to enter holds the treasure you seek."
+	noindex
+>
 	<h1 class="m-0 text-[2.5rem] font-semibold leading-[1.15] tracking-[-0.02em] sm:text-[2.75rem]">
-		Willpower Log
+		Discomfort Log
 	</h1>
-	<p class="mt-6 m-0">Instances where I showed willpower, day by day.</p>
+	<blockquote class="mt-6 m-0">
+		<p class="m-0">“The cave you fear to enter holds the treasure you seek.”</p>
+		<footer class="mt-2 text-[0.9375rem] text-muted">— Joseph Campbell</footer>
+	</blockquote>
 	{
 		months.length === 0 ? (
 			<p class="mt-12 m-0 text-muted">No entries yet.</p>
