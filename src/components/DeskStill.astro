@@ -6,7 +6,7 @@
 		class="desk-still-canvas opacity-0 transition-opacity duration-500"
 		tabindex="0"
 		role="img"
-		aria-label="A small 3D still life of a silvery metallic laptop with a matching silver apple logo, a potted plant, a ceramic cup of black coffee, and a ballpoint pen on paper, all sitting on a wooden table. Drag or use the arrow keys to turn it."
+		aria-label="A small 3D still life of a silvery metallic laptop with a matching silver apple logo, a potted plant, a ceramic cup of black coffee, and a ballpoint pen on paper, all sitting on a wooden table. Drag or use the arrow keys to turn it. The coffee cup opens the grounds page."
 	></canvas>
 
 	<!-- Clean Loading Spinner -->
@@ -136,9 +136,13 @@
 
 		let isLoaded = false;
 		let timeoutId: number | undefined;
+		let disposeScene: (() => void) | undefined;
+		let loadAttempt = 0;
 
 		function showFallback(reasonMessage?: string) {
 			if (timeoutId) clearTimeout(timeoutId);
+			disposeScene?.();
+			disposeScene = undefined;
 			spinner.classList.add('opacity-0');
 			setTimeout(() => {
 				spinner.classList.add('hidden');
@@ -155,24 +159,32 @@
 		}
 
 		async function loadScene() {
+			const attempt = ++loadAttempt;
+			isLoaded = false;
+			disposeScene?.();
+			disposeScene = undefined;
+			if (timeoutId) clearTimeout(timeoutId);
 			fallback.classList.add('hidden');
 			fallback.classList.remove('flex');
 			canvas.classList.remove('hidden');
 			spinner.classList.remove('hidden');
 			spinner.classList.remove('opacity-0');
 
-			// Timeout after 7 seconds for slow networks
 			timeoutId = window.setTimeout(() => {
 				if (!isLoaded) {
 					showFallback('Loading timed out. Click below to try again.');
 				}
-			}, 7000);
+			}, 8000);
 
 			try {
 				const { mountDeskStill } = await import('../lib/desk-scene');
-				mountDeskStill(canvas, () => {
+				if (attempt !== loadAttempt) return;
+				if (timeoutId) clearTimeout(timeoutId);
+
+				disposeScene = mountDeskStill(canvas, () => {
+					if (attempt !== loadAttempt) return;
+
 					isLoaded = true;
-					if (timeoutId) clearTimeout(timeoutId);
 					canvas.classList.remove('opacity-0');
 					canvas.classList.add('opacity-100');
 					spinner.classList.add('opacity-0');
@@ -198,6 +210,8 @@
 				loadScene();
 			});
 		}
+
+		window.addEventListener('pagehide', () => disposeScene?.(), { once: true });
 
 		const mug = fallback.querySelector('[data-desk-mug]');
 		if (mug instanceof SVGElement) {

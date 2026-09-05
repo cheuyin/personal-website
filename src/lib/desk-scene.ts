@@ -7,7 +7,7 @@ const PAPER = 0xf1f0e8;
 const MUTED = 0x5c6358;
 const ACCENT = 0x3d6b4f;
 const SHELL = 0xb9bec5;
-const SHELL_DARK = 0x989ea7;
+const SHELL_DARK = 0xa8adb5;
 const LOGO = 0x8f949b;
 const LOGO_DARK = 0x6f747b;
 const BIC_BLUE = 0x1e5f9e;
@@ -299,6 +299,14 @@ function woodMaps(
 	const mid = [184, 146, 106];
 	const dark = [138, 102, 70];
 	const plankCount = kind === 'edge' ? 1 : 5;
+	const plankDetails = Array.from({ length: plankCount }, (_, plank) => {
+		const seed = hash2(plank + 1, 3.7);
+		return {
+			seed,
+			knotX: 0.22 + seed * 0.58,
+			knotY: 0.22 + hash2(plank + 4, 8.1) * 0.56,
+		};
+	});
 
 	for (let y = 0; y < height; y += 1) {
 		for (let x = 0; x < width; x += 1) {
@@ -306,8 +314,8 @@ function woodMaps(
 			const ny = y / height;
 			const plank = Math.min(plankCount - 1, Math.floor(ny * plankCount));
 			const plankY = (ny * plankCount) % 1;
-			const seed = hash2(plank + 1, 3.7);
-			const warp = Math.sin(ny * 7 + seed * 5) * 3.2 + Math.sin(ny * 17 + seed * 2) * 1.1;
+			const { seed, knotX, knotY } = plankDetails[plank];
+			const warp = Math.sin(ny * 8 + seed * 5) * 6.2 + Math.sin(ny * 23 + seed * 2) * 1.6;
 			let grain: number;
 
 			if (kind === 'end') {
@@ -317,13 +325,27 @@ function woodMaps(
 				grain = Math.sin(ring) * 0.12;
 			} else {
 				const along = x + warp + seed * 28;
-				grain = Math.sin(along * 0.13) * 0.12 + Math.sin(along * 0.41 + seed * 4) * 0.05;
+				grain =
+					Math.sin(along * 0.055) * 0.07 +
+					Math.sin(along * 0.19 + seed * 4) * 0.032 +
+					Math.sin(along * 0.58 + seed * 7) * 0.012;
 			}
 
-			const noise = (hash2(x * 0.51, y * 0.47) - 0.5) * 0.05;
+			const knotDx = (nx - knotX) * 4.2;
+			const knotDy = (plankY - knotY) * 9;
+			const knotDistanceSquared = knotDx * knotDx + knotDy * knotDy;
+			let knot = 0;
+
+			if (kind === 'boards' && knotDistanceSquared < 0.64) {
+				const knotDistance = Math.sqrt(knotDistanceSquared);
+				knot = (1 - knotDistance / 0.8) * Math.sin(knotDistance * 13) * 0.065;
+			}
+
+			grain += knot;
+			const noise = (hash2(x * 0.51, y * 0.47) - 0.5) * 0.03;
 			const seamDist = Math.min(plankY, 1 - plankY);
 			const seam = kind === 'boards' ? Math.max(0, 0.034 - seamDist) * 3.6 : 0;
-			const streak = Math.pow(Math.max(0, Math.sin(ny * 18 + seed * 8) * Math.sin(nx * 2.4 + seed * 3)), 10) * 0.16;
+			const streak = Math.pow(Math.max(0, Math.sin(ny * 18 + seed * 8) * Math.sin(nx * 2.4 + seed * 3)), 12) * 0.1;
 			const boardShift = (seed - 0.5) * 0.08;
 			const t = Math.min(1, Math.max(0, 0.56 + grain + boardShift + noise - seam - streak));
 			const rgb = t < 0.5 ? mixColor(dark, mid, t * 2) : mixColor(mid, light, (t - 0.5) * 2);
@@ -521,7 +543,22 @@ function makeLaptop(): THREE.Group {
 	);
 	screen.rotation.x = Math.PI / 2;
 	screen.position.set(0, -0.002, depth / 2);
+	screen.userData.part = 'screen';
 	lid.add(screen);
+
+	const cursor = new THREE.Mesh(
+		new THREE.PlaneGeometry(0.025, 0.11),
+		new THREE.MeshBasicMaterial({
+			color: 0xa7d5b0,
+			transparent: true,
+			opacity: 0.76,
+			toneMapped: false,
+		}),
+	);
+	cursor.rotation.x = Math.PI / 2;
+	cursor.position.set(-0.83, -0.006, depth * 0.19);
+	cursor.userData.part = 'screen-cursor';
+	lid.add(cursor);
 
 	const logo = makeAppleLogo(0.34);
 	logo.rotation.set(-Math.PI / 2, 0, Math.PI);
@@ -581,11 +618,29 @@ function makePen(): THREE.Group {
 	return pen;
 }
 
+function steamTexture(): THREE.CanvasTexture {
+	return canvasTexture(64, 160, (ctx) => {
+		const gradient = ctx.createRadialGradient(32, 78, 4, 32, 72, 38);
+		gradient.addColorStop(0, 'rgba(248, 248, 244, 0.85)');
+		gradient.addColorStop(0.35, 'rgba(236, 240, 232, 0.32)');
+		gradient.addColorStop(1, 'rgba(236, 240, 232, 0)');
+		ctx.fillStyle = gradient;
+		ctx.fillRect(0, 0, 64, 160);
+	});
+}
+
 function makeCup(): THREE.Group {
 	const cup = new THREE.Group();
 	cup.userData.easterEgg = '/grounds';
 	cup.scale.setScalar(1.18);
-	const ceramic = mat(0xb7ad9a, { roughness: 0.5, metalness: 0.02, envMapIntensity: 0.22 });
+	const ceramic = new THREE.MeshPhysicalMaterial({
+		color: 0xb7ad9a,
+		roughness: 0.38,
+		metalness: 0,
+		clearcoat: 0.18,
+		clearcoatRoughness: 0.42,
+		envMapIntensity: 0.34,
+	});
 	const profile = [
 		new THREE.Vector2(0.02, 0.0),
 		new THREE.Vector2(0.28, 0.0),
@@ -629,6 +684,35 @@ function makeCup(): THREE.Group {
 	handle.castShadow = true;
 	cup.add(handle);
 
+	const steamMap = steamTexture();
+	const puffs = [
+		{ x: -0.08, z: 0.04, phase: 0, width: 0.48, height: 0.78 },
+		{ x: 0.06, z: -0.03, phase: 0.34, width: 0.56, height: 0.92 },
+		{ x: 0.16, z: 0.03, phase: 0.68, width: 0.44, height: 0.7 },
+	];
+
+	for (const puff of puffs) {
+		const strand = new THREE.Sprite(
+			new THREE.SpriteMaterial({
+				map: steamMap,
+				transparent: true,
+				opacity: 0,
+				depthWrite: false,
+				toneMapped: false,
+			}),
+		);
+		strand.center.set(0.5, 0);
+		strand.scale.set(puff.width, puff.height, 1);
+		strand.position.set(puff.x, 0.74, puff.z);
+		strand.userData.part = 'steam';
+		strand.userData.phase = puff.phase;
+		strand.userData.baseX = puff.x;
+		strand.userData.baseZ = puff.z;
+		strand.userData.baseWidth = puff.width;
+		strand.userData.baseHeight = puff.height;
+		cup.add(strand);
+	}
+
 	const hit = new THREE.Mesh(
 		new THREE.CylinderGeometry(0.62, 0.55, 0.95, 16),
 		new THREE.MeshBasicMaterial({ visible: false }),
@@ -667,11 +751,20 @@ function makeLeaf(width: number, height: number, color: number): THREE.Mesh {
 	});
 	geometry.center();
 	const leaf = new THREE.Mesh(geometry, mat(color, {
-		roughness: 0.58,
+		roughness: 0.48 + (color % 7) * 0.025,
 		metalness: 0.03,
-		envMapIntensity: 0.22,
+		envMapIntensity: 0.28,
 	}));
 	leaf.castShadow = true;
+	leaf.userData.part = 'leaf';
+
+	const vein = new THREE.Mesh(
+		new THREE.CylinderGeometry(0.007, 0.012, height * 0.7, 5),
+		mat(0x274733, { roughness: 0.72, metalness: 0, envMapIntensity: 0.08 }),
+	);
+	vein.position.set(0, -height * 0.04, 0.016);
+	vein.castShadow = false;
+	leaf.add(vein);
 	return leaf;
 }
 
@@ -721,19 +814,22 @@ function makePlant(): THREE.Group {
 		const leaf = makeLeaf(spec.w, spec.h, spec.color);
 		leaf.position.set(spec.pos[0], spec.pos[1], spec.pos[2]);
 		leaf.rotation.set(spec.rot[0], spec.rot[1], spec.rot[2]);
+		leaf.userData.baseRotation = leaf.rotation.clone();
+		leaf.userData.phase = plant.children.length * 0.71;
 		plant.add(leaf);
 	}
 
 	return plant;
 }
 
-function makeTable(width: number, depth: number): THREE.Group {
+function makeTable(width: number, depth: number, lowPower = false): THREE.Group {
 	const table = new THREE.Group();
-	const thickness = 0.16;
-	const legH = 0.62;
-	const topMaps = woodMaps(1024, 512, 'boards');
-	const edgeMaps = woodMaps(1024, 128, 'edge');
-	const endMaps = woodMaps(512, 256, 'end');
+	const thickness = 0.11;
+	const legH = 0.58;
+	const mapScale = lowPower ? 0.5 : 1;
+	const topMaps = woodMaps(512 * mapScale, 256 * mapScale, 'boards');
+	const edgeMaps = woodMaps(512 * mapScale, 64 * mapScale, 'edge');
+	const endMaps = woodMaps(256 * mapScale, 128 * mapScale, 'end');
 	const topMat = woodMaterial(topMaps, { roughness: 0.5, envMapIntensity: 0.24, bumpScale: 0.02 });
 	const edgeMat = woodMaterial(edgeMaps, { roughness: 0.64, bumpScale: 0.01 });
 	const endMat = woodMaterial(endMaps, { roughness: 0.7, bumpScale: 0.01 });
@@ -752,8 +848,8 @@ function makeTable(width: number, depth: number): THREE.Group {
 	top.userData.part = 'wood';
 	table.add(top);
 
-	const apronH = 0.11;
-	const apronT = 0.07;
+	const apronH = 0.075;
+	const apronT = 0.06;
 	const apronY = -thickness - apronH / 2;
 	const apronMat = woodMaterial(edgeMaps, { roughness: 0.7, bumpScale: 0.016, color: 0xe8d3b0 });
 	const front = new THREE.Mesh(new THREE.BoxGeometry(width - 0.18, apronH, apronT), apronMat);
@@ -773,10 +869,9 @@ function makeTable(width: number, depth: number): THREE.Group {
 		table.add(apron);
 	}
 
-	const legW = 0.15;
-	const inset = 0.2;
-	const legMaps = woodMaps(256, 512, 'edge');
-	const legMat = woodMaterial(legMaps, { roughness: 0.72, bumpScale: 0.02, color: 0xe4cc9f });
+	const legW = 0.12;
+	const inset = 0.17;
+	const legMat = woodMaterial(edgeMaps, { roughness: 0.72, bumpScale: 0.02, color: 0xe4cc9f });
 	const corners = [
 		[width / 2 - inset, depth / 2 - inset],
 		[-width / 2 + inset, depth / 2 - inset],
@@ -796,7 +891,7 @@ function makeTable(width: number, depth: number): THREE.Group {
 	return table;
 }
 
-function buildStillLife(): THREE.Group {
+function buildStillLife(lowPower = false): THREE.Group {
 	const still = new THREE.Group();
 	const props = new THREE.Group();
 	const laptop = makeLaptop();
@@ -815,16 +910,16 @@ function buildStillLife(): THREE.Group {
 	cup.rotation.y = 0.5;
 
 	const plant = makePlant();
-	plant.position.set(-3.05, 0, -0.78);
+	plant.position.set(-2.86, 0, -0.62);
 	plant.rotation.y = 0.3;
-	plant.scale.setScalar(1.28);
+	plant.scale.setScalar(1.16);
 
 	props.add(laptop, paper, pen, cup, plant);
 
 	const bounds = new THREE.Box3().setFromObject(props);
 	const size = bounds.getSize(new THREE.Vector3());
 	const center = bounds.getCenter(new THREE.Vector3());
-	const table = makeTable(size.x + 1.85, size.z + 1.7);
+	const table = makeTable(size.x + 1.5, size.z + 1.35, lowPower);
 	table.position.set(center.x, bounds.min.y, center.z + 0.18);
 	props.position.y = 0.008;
 
@@ -837,12 +932,12 @@ function buildStillLife(): THREE.Group {
 
 const EASTER_EGG_CLICK_PX = 10;
 
-function easterEggFrom(object: THREE.Object3D): string | undefined {
+function easterEggRootFrom(object: THREE.Object3D): THREE.Object3D | undefined {
 	let current: THREE.Object3D | null = object;
 
 	while (current) {
 		if (typeof current.userData.easterEgg === 'string') {
-			return current.userData.easterEgg;
+			return current;
 		}
 
 		current = current.parent;
@@ -855,6 +950,13 @@ function isDarkTheme(): boolean {
 
 export function mountDeskStill(canvas: HTMLCanvasElement, onReady?: () => void): () => void {
 	const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+	const device = navigator as Navigator & { deviceMemory?: number };
+	const lowPower =
+		canvas.clientWidth < 520 ||
+		(typeof device.deviceMemory === 'number' && device.deviceMemory <= 4) ||
+		(typeof device.hardwareConcurrency === 'number' && device.hardwareConcurrency <= 4);
+	const pixelRatioCap = lowPower ? 1.25 : 1.75;
+	const shadowSize = lowPower ? 1024 : 2048;
 	let renderer: THREE.WebGLRenderer;
 
 	try {
@@ -865,32 +967,33 @@ export function mountDeskStill(canvas: HTMLCanvasElement, onReady?: () => void):
 			powerPreference: 'low-power',
 		});
 	} catch {
-		return () => undefined;
+		throw new Error('WebGL renderer could not be created.');
 	}
 
-	renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+	renderer.setPixelRatio(Math.min(window.devicePixelRatio, pixelRatioCap));
 	renderer.setClearColor(0x000000, 0);
 	renderer.outputColorSpace = THREE.SRGBColorSpace;
 	renderer.toneMapping = THREE.ACESFilmicToneMapping;
-	renderer.toneMappingExposure = 0.88;
+	renderer.toneMappingExposure = 0.92;
 	renderer.shadowMap.enabled = true;
 	renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
 	const scene = new THREE.Scene();
 	const camera = new THREE.PerspectiveCamera(32, 1, 0.1, 40);
-	camera.position.set(0.12, 3.35, 8.2);
+	camera.position.set(0.12, 3.45, 8.45);
 
 	const pmrem = new THREE.PMREMGenerator(renderer);
-	scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.08).texture;
-	scene.environmentIntensity = 0.42;
+	const environment = pmrem.fromScene(new RoomEnvironment(), 0.08);
+	scene.environment = environment.texture;
+	scene.environmentIntensity = 0.46;
 
-	const hemi = new THREE.HemisphereLight(PAPER, MUTED, 0.9);
+	const hemi = new THREE.HemisphereLight(PAPER, MUTED, 0.7);
 	scene.add(hemi);
 
-	const key = new THREE.DirectionalLight(0xfff6ea, 1.05);
+	const key = new THREE.DirectionalLight(0xfff3df, 1.16);
 	key.position.set(1.1, 10.8, 3.6);
 	key.castShadow = true;
-	key.shadow.mapSize.set(2048, 2048);
+	key.shadow.mapSize.set(shadowSize, shadowSize);
 	key.shadow.bias = -0.00012;
 	key.shadow.normalBias = 0.05;
 	key.shadow.radius = 3;
@@ -903,47 +1006,74 @@ export function mountDeskStill(canvas: HTMLCanvasElement, onReady?: () => void):
 	key.shadow.camera.updateProjectionMatrix();
 	scene.add(key);
 
-	const fill = new THREE.DirectionalLight(ACCENT, 0.22);
+	const fill = new THREE.DirectionalLight(ACCENT, 0.16);
 	fill.position.set(-3.4, 2.2, 1.6);
 	scene.add(fill);
 
-	const rim = new THREE.DirectionalLight(0xe8efe4, 0.55);
+	const rim = new THREE.DirectionalLight(0xe8efe4, 0.44);
 	rim.position.set(-1.4, 4.2, -5.8);
 	scene.add(rim);
 
-	const floor = new THREE.Mesh(new THREE.PlaneGeometry(18, 18), new THREE.ShadowMaterial({ opacity: 0.16 }));
+	const floor = new THREE.Mesh(new THREE.PlaneGeometry(18, 18), new THREE.ShadowMaterial({ opacity: 0.14 }));
 	floor.rotation.x = -Math.PI / 2;
 	floor.receiveShadow = true;
 	scene.add(floor);
 
-	const still = buildStillLife();
+	const still = buildStillLife(lowPower);
 	scene.add(still);
 	key.target = still;
 
 	const raycaster = new THREE.Raycaster();
 	const pointerNdc = new THREE.Vector2();
 	let pointerStart: { x: number; y: number } | null = null;
+	let hoveredEgg: THREE.Object3D | undefined;
+	let idleMotion = !reducedMotion;
 
 	const controls = new OrbitControls(camera, canvas);
 	controls.enablePan = false;
 	controls.enableZoom = false;
 	controls.enableDamping = true;
 	controls.dampingFactor = 0.08;
-	controls.autoRotate = !reducedMotion;
-	controls.autoRotateSpeed = 0.55;
-	controls.minPolarAngle = 0.92;
-	controls.maxPolarAngle = 1.32;
-	controls.target.set(0, 1.42, 0.08);
+	controls.autoRotate = false;
+	controls.minPolarAngle = 0.96;
+	controls.maxPolarAngle = 1.28;
+	controls.minAzimuthAngle = -0.42;
+	controls.maxAzimuthAngle = 0.42;
+	controls.target.set(0, 1.54, 0.08);
 	controls.update();
 
+	const leaves: THREE.Mesh[] = [];
+	const steam: THREE.Sprite[] = [];
+	const screenCursors: THREE.Mesh[] = [];
+	still.traverse((child) => {
+		if (child instanceof THREE.Sprite && child.userData.part === 'steam') {
+			steam.push(child);
+			return;
+		}
+
+		if (!(child instanceof THREE.Mesh)) {
+			return;
+		}
+
+		if (child.userData.part === 'leaf') {
+			leaves.push(child);
+		}
+
+		if (child.userData.part === 'screen-cursor') {
+			screenCursors.push(child);
+		}
+	});
+
+	let darkTheme = isDarkTheme();
+
 	function syncLights(): void {
-		const dark = isDarkTheme();
-		hemi.intensity = dark ? 0.78 : 0.86;
-		key.intensity = dark ? 1.02 : 0.96;
-		fill.intensity = dark ? 0.42 : 0.22;
-		rim.intensity = dark ? 0.55 : 0.38;
-		floor.material.opacity = dark ? 0.36 : 0.16;
-		scene.environmentIntensity = dark ? 0.38 : 0.48;
+		darkTheme = isDarkTheme();
+		hemi.intensity = darkTheme ? 0.62 : 0.7;
+		key.intensity = darkTheme ? 1.24 : 1.16;
+		fill.intensity = darkTheme ? 0.36 : 0.16;
+		rim.intensity = darkTheme ? 0.72 : 0.44;
+		floor.material.opacity = darkTheme ? 0.28 : 0.14;
+		scene.environmentIntensity = darkTheme ? 0.48 : 0.46;
 		still.traverse((child) => {
 			if (!(child instanceof THREE.Mesh)) {
 				return;
@@ -957,34 +1087,41 @@ export function mountDeskStill(canvas: HTMLCanvasElement, onReady?: () => void):
 				}
 
 				if (child.userData.part === 'shell') {
-					material.color.set(dark ? SHELL_DARK : SHELL);
+					material.color.set(darkTheme ? SHELL_DARK : SHELL);
 				}
 
 				if (child.userData.part === 'logo') {
-					material.color.set(dark ? LOGO_DARK : LOGO);
+					material.color.set(darkTheme ? LOGO_DARK : LOGO);
+				}
+
+				if (child.userData.part === 'screen') {
+					material.color.setHex(darkTheme ? 0x777d77 : 0xffffff);
+					material.roughness = darkTheme ? 0.38 : 0.22;
+					material.envMapIntensity = darkTheme ? 0.08 : 0.2;
+					material.emissiveIntensity = darkTheme ? 0.34 : 0.5;
 				}
 
 				if (child.userData.part === 'wood') {
 					const base = material.userData.baseColor ?? 0xffffff;
 					material.color.setHex(base);
 
-					if (dark) {
-						material.color.multiplyScalar(0.58);
+					if (darkTheme) {
+						material.color.multiplyScalar(0.68);
 					}
 				}
 			}
 		});
-	}
 
-	syncLights();
-	const themeObserver = new MutationObserver(syncLights);
-	themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+		requestRender();
+	}
 
 	let width = 0;
 	let height = 0;
 	let frame = 0;
 	let visible = true;
 	let hasRenderedFirstFrame = false;
+	let lastRenderTime = 0;
+	const minimumFrameInterval = lowPower ? 1000 / 30 : 0;
 
 	function resize(): void {
 		const nextWidth = Math.max(1, canvas.clientWidth);
@@ -998,21 +1135,73 @@ export function mountDeskStill(canvas: HTMLCanvasElement, onReady?: () => void):
 		height = nextHeight;
 		renderer.setSize(width, height, false);
 		camera.aspect = width / height;
-		const distance = camera.aspect < 1.45 ? 9.4 : 8.2;
+		const distance = camera.aspect < 1.45 ? 9.25 : 8.45;
 		const offset = camera.position.clone().sub(controls.target).normalize().multiplyScalar(distance);
 		camera.position.copy(controls.target).add(offset);
 		camera.updateProjectionMatrix();
 	}
 
-	function render(): void {
-		frame = requestAnimationFrame(render);
-
-		if (!visible) {
+	function animate(time: number): void {
+		if (reducedMotion) {
 			return;
 		}
 
+		const elapsed = time / 1000;
+
+		if (idleMotion) {
+			still.rotation.y = Math.sin(elapsed * 0.32) * 0.22;
+		}
+
+		for (const leaf of leaves) {
+			const base = leaf.userData.baseRotation as THREE.Euler | undefined;
+			const phase = Number(leaf.userData.phase ?? 0);
+
+			if (base) {
+				leaf.rotation.x = base.x + Math.sin(elapsed * 0.7 + phase) * 0.012;
+				leaf.rotation.z = base.z + Math.sin(elapsed * 0.82 + phase) * 0.022;
+			}
+		}
+
+		for (const strand of steam) {
+			const phase = Number(strand.userData.phase ?? 0);
+			const cycle = (elapsed * 0.16 + phase) % 1;
+			const fade = Math.pow(Math.sin(cycle * Math.PI), 1.35);
+			const width = Number(strand.userData.baseWidth ?? 0.26);
+			const height = Number(strand.userData.baseHeight ?? 0.42);
+			strand.position.y = 0.74 + cycle * 0.34;
+			strand.position.x = Number(strand.userData.baseX ?? 0) + Math.sin(elapsed * 0.55 + phase * 8) * 0.03;
+			strand.position.z = Number(strand.userData.baseZ ?? 0);
+			strand.scale.set(width * (1 + cycle * 0.28), height * (1 + cycle * 0.42), 1);
+			strand.material.opacity = (darkTheme ? 0.55 : 0.4) * fade;
+		}
+
+		for (const cursor of screenCursors) {
+			cursor.visible = Math.floor(elapsed * 1.4) % 2 === 0;
+		}
+	}
+
+	function requestRender(): void {
+		if (frame === 0 && visible && !document.hidden) {
+			frame = requestAnimationFrame(render);
+		}
+	}
+
+	function render(time: number): void {
+		frame = 0;
+
+		if (!visible || document.hidden) {
+			return;
+		}
+
+		if (minimumFrameInterval > 0 && time - lastRenderTime < minimumFrameInterval) {
+			requestRender();
+			return;
+		}
+
+		lastRenderTime = time;
 		resize();
-		controls.update();
+		animate(time);
+		const controlsChanged = controls.update();
 		renderer.render(scene, camera);
 
 		if (!hasRenderedFirstFrame) {
@@ -1021,29 +1210,13 @@ export function mountDeskStill(canvas: HTMLCanvasElement, onReady?: () => void):
 				onReady();
 			}
 		}
+
+		if (!reducedMotion || controlsChanged) {
+			requestRender();
+		}
 	}
 
-	function onPointerDown(event: PointerEvent): void {
-		controls.autoRotate = false;
-		canvas.style.cursor = 'grabbing';
-		pointerStart = { x: event.clientX, y: event.clientY };
-	}
-
-	function onPointerUp(event: PointerEvent): void {
-		canvas.style.cursor = 'grab';
-
-		if (!pointerStart) {
-			return;
-		}
-
-		const dx = event.clientX - pointerStart.x;
-		const dy = event.clientY - pointerStart.y;
-		pointerStart = null;
-
-		if (dx * dx + dy * dy > EASTER_EGG_CLICK_PX * EASTER_EGG_CLICK_PX) {
-			return;
-		}
-
+	function eggAt(event: PointerEvent): THREE.Object3D | undefined {
 		const rect = canvas.getBoundingClientRect();
 		if (rect.width === 0 || rect.height === 0) {
 			return;
@@ -1055,59 +1228,202 @@ export function mountDeskStill(canvas: HTMLCanvasElement, onReady?: () => void):
 		);
 		raycaster.setFromCamera(pointerNdc, camera);
 		const hit = raycaster.intersectObject(still, true)[0];
-		const href = hit ? easterEggFrom(hit.object) : undefined;
+		return hit ? easterEggRootFrom(hit.object) : undefined;
+	}
 
-		if (href) {
+	function setEggHovered(next: THREE.Object3D | undefined): void {
+		if (hoveredEgg === next) {
+			return;
+		}
+
+		for (const [root, active] of [[hoveredEgg, false], [next, true]] as const) {
+			root?.traverse((child) => {
+				if (!(child instanceof THREE.Mesh)) {
+					return;
+				}
+
+				const materials = Array.isArray(child.material) ? child.material : [child.material];
+
+				for (const material of materials) {
+					if (!(material instanceof THREE.MeshStandardMaterial)) {
+						continue;
+					}
+
+					if (material.userData.hoverEmissive === undefined) {
+						material.userData.hoverEmissive = material.emissive.getHex();
+						material.userData.hoverEmissiveIntensity = material.emissiveIntensity;
+					}
+
+					material.emissive.setHex(active ? ACCENT : material.userData.hoverEmissive);
+					material.emissiveIntensity = active ? 0.16 : material.userData.hoverEmissiveIntensity;
+				}
+			});
+		}
+
+		hoveredEgg = next;
+		requestRender();
+	}
+
+	function onPointerMove(event: PointerEvent): void {
+		if (pointerStart) {
+			return;
+		}
+
+		const egg = eggAt(event);
+		setEggHovered(egg);
+		canvas.style.cursor = egg ? 'pointer' : 'grab';
+	}
+
+	function onPointerDown(event: PointerEvent): void {
+		idleMotion = false;
+		canvas.style.cursor = 'grabbing';
+		pointerStart = { x: event.clientX, y: event.clientY };
+		requestRender();
+	}
+
+	function onPointerUp(event: PointerEvent): void {
+		if (!pointerStart) {
+			return;
+		}
+
+		const dx = event.clientX - pointerStart.x;
+		const dy = event.clientY - pointerStart.y;
+		pointerStart = null;
+
+		if (dx * dx + dy * dy > EASTER_EGG_CLICK_PX * EASTER_EGG_CLICK_PX) {
+			setEggHovered(eggAt(event));
+			canvas.style.cursor = hoveredEgg ? 'pointer' : 'grab';
+			return;
+		}
+
+		const egg = eggAt(event);
+		setEggHovered(egg);
+		canvas.style.cursor = egg ? 'pointer' : 'grab';
+		const href = egg?.userData.easterEgg;
+
+		if (typeof href === 'string') {
 			window.location.assign(href);
 		}
 	}
 
 	function onPointerCancel(): void {
 		pointerStart = null;
+		setEggHovered(undefined);
 		canvas.style.cursor = 'grab';
+	}
+
+	function onPointerLeave(): void {
+		if (!pointerStart) {
+			setEggHovered(undefined);
+			canvas.style.cursor = 'grab';
+		}
 	}
 
 	function onKeyDown(event: KeyboardEvent): void {
 		const step = 0.1;
 
 		if (event.key === 'ArrowLeft') {
-			controls.autoRotate = false;
+			idleMotion = false;
 			still.rotation.y += step;
 			event.preventDefault();
+			requestRender();
 		}
 
 		if (event.key === 'ArrowRight') {
-			controls.autoRotate = false;
+			idleMotion = false;
 			still.rotation.y -= step;
 			event.preventDefault();
+			requestRender();
 		}
 	}
 
+	syncLights();
+	const themeObserver = new MutationObserver(syncLights);
+	themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+
+	controls.addEventListener('change', requestRender);
+	canvas.addEventListener('pointermove', onPointerMove);
 	canvas.addEventListener('pointerdown', onPointerDown);
 	canvas.addEventListener('pointerup', onPointerUp);
 	canvas.addEventListener('pointercancel', onPointerCancel);
+	canvas.addEventListener('pointerleave', onPointerLeave);
 	canvas.addEventListener('keydown', onKeyDown);
 
 	const visibility = new IntersectionObserver((entries) => {
 		visible = entries.some((entry) => entry.isIntersecting);
+
+		if (visible) {
+			requestRender();
+		} else if (frame !== 0) {
+			cancelAnimationFrame(frame);
+			frame = 0;
+		}
 	}, { threshold: 0.05 });
 	visibility.observe(canvas);
 
-	const resizeObserver = new ResizeObserver(resize);
+	const resizeObserver = new ResizeObserver(() => {
+		resize();
+		requestRender();
+	});
 	resizeObserver.observe(canvas);
-	render();
+	const onVisibilityChange = () => requestRender();
+	document.addEventListener('visibilitychange', onVisibilityChange);
+	requestRender();
 
 	return () => {
-		cancelAnimationFrame(frame);
+		if (frame !== 0) {
+			cancelAnimationFrame(frame);
+		}
+
 		visibility.disconnect();
 		resizeObserver.disconnect();
 		themeObserver.disconnect();
+		document.removeEventListener('visibilitychange', onVisibilityChange);
+		controls.removeEventListener('change', requestRender);
 		controls.dispose();
+		environment.dispose();
 		pmrem.dispose();
+
+		const geometries = new Set<THREE.BufferGeometry>();
+		const materials = new Set<THREE.Material>();
+		const textures = new Set<THREE.Texture>();
+		scene.traverse((child) => {
+			if (child instanceof THREE.Sprite) {
+				materials.add(child.material);
+
+				if (child.material.map) {
+					textures.add(child.material.map);
+				}
+
+				return;
+			}
+
+			if (!(child instanceof THREE.Mesh)) {
+				return;
+			}
+
+			geometries.add(child.geometry);
+			const childMaterials = Array.isArray(child.material) ? child.material : [child.material];
+
+			for (const material of childMaterials) {
+				materials.add(material);
+
+				for (const value of Object.values(material)) {
+					if (value instanceof THREE.Texture) {
+						textures.add(value);
+					}
+				}
+			}
+		});
+		textures.forEach((texture) => texture.dispose());
+		materials.forEach((material) => material.dispose());
+		geometries.forEach((geometry) => geometry.dispose());
 		renderer.dispose();
+		canvas.removeEventListener('pointermove', onPointerMove);
 		canvas.removeEventListener('pointerdown', onPointerDown);
 		canvas.removeEventListener('pointerup', onPointerUp);
 		canvas.removeEventListener('pointercancel', onPointerCancel);
+		canvas.removeEventListener('pointerleave', onPointerLeave);
 		canvas.removeEventListener('keydown', onKeyDown);
 	};
 }

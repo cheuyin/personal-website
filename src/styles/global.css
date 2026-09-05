@@ -188,7 +188,7 @@ html[data-theme='dark'] {
 	.desk-still {
 		margin: 1.5rem 0 0;
 		width: 100%;
-		height: 17.5rem;
+		height: 18.75rem;
 	}
 
 	.desk-still-canvas {
@@ -206,7 +206,7 @@ html[data-theme='dark'] {
 
 	@media (min-width: 640px) {
 		.desk-still {
-			height: 21.5rem;
+			height: 23rem;
 		}
 	}
 
