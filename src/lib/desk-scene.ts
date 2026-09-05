@@ -954,7 +954,6 @@ function sandTexture(size: number): THREE.CanvasTexture {
 type BeachBackdrop = {
 	group: THREE.Group;
 	ocean: THREE.Mesh;
-	oceanBase: Float32Array;
 	foam: THREE.Mesh;
 	sun: THREE.Mesh;
 	skyMaterial: THREE.ShaderMaterial;
@@ -962,6 +961,7 @@ type BeachBackdrop = {
 	oceanMaterial: THREE.MeshStandardMaterial;
 	foamMaterial: THREE.MeshBasicMaterial;
 	sunMaterial: THREE.MeshBasicMaterial;
+	oceanTime: { value: number };
 };
 
 function makeBeachBackdrop(lowPower = false): BeachBackdrop {
@@ -1027,31 +1027,42 @@ function makeBeachBackdrop(lowPower = false): BeachBackdrop {
 	sand.receiveShadow = true;
 	group.add(sand);
 
+	const oceanTime = { value: 0 };
 	const oceanMaterial = new THREE.MeshStandardMaterial({
 		color: 0x2f9bc4,
-		roughness: 0.22,
-		metalness: 0.08,
-		envMapIntensity: 0.55,
+		roughness: 0.28,
+		metalness: 0.06,
+		envMapIntensity: 0.48,
 	});
-	const oceanSegX = lowPower ? 20 : 40;
-	const oceanSegY = lowPower ? 12 : 24;
-	const oceanGeo = new THREE.PlaneGeometry(90, 46, oceanSegX, oceanSegY);
+	oceanMaterial.onBeforeCompile = (shader) => {
+		shader.uniforms.uTime = oceanTime;
+		shader.vertexShader = `uniform float uTime;\n${shader.vertexShader}`.replace(
+			'#include <begin_vertex>',
+			`
+			#include <begin_vertex>
+			transformed.z += sin(position.x * 0.038 + uTime * 0.22) * 0.028
+				+ sin(position.y * 0.03 + uTime * 0.15) * 0.02;
+			`,
+		);
+	};
+	const oceanSegX = lowPower ? 16 : 28;
+	const oceanSegY = lowPower ? 10 : 18;
+	const oceanGeo = new THREE.PlaneGeometry(90, 40, oceanSegX, oceanSegY);
 	const ocean = new THREE.Mesh(oceanGeo, oceanMaterial);
 	ocean.rotation.x = -Math.PI / 2;
-	ocean.position.set(0, -0.18, -18);
-	const oceanBase = Float32Array.from(oceanGeo.attributes.position.array);
+	ocean.position.set(0, -0.24, -32);
 	group.add(ocean);
 
 	const foamMaterial = new THREE.MeshBasicMaterial({
 		color: 0xf7f4ea,
 		transparent: true,
-		opacity: 0.22,
+		opacity: 0.1,
 		depthWrite: false,
 		toneMapped: false,
 	});
-	const foam = new THREE.Mesh(new THREE.PlaneGeometry(90, 3.2), foamMaterial);
+	const foam = new THREE.Mesh(new THREE.PlaneGeometry(90, 1.1), foamMaterial);
 	foam.rotation.x = -Math.PI / 2;
-	foam.position.set(0, -0.12, -6.4);
+	foam.position.set(0, -0.2, -12.2);
 	group.add(foam);
 
 	const sunMaterial = new THREE.MeshBasicMaterial({
@@ -1066,7 +1077,6 @@ function makeBeachBackdrop(lowPower = false): BeachBackdrop {
 	return {
 		group,
 		ocean,
-		oceanBase,
 		foam,
 		sun,
 		skyMaterial,
@@ -1074,6 +1084,7 @@ function makeBeachBackdrop(lowPower = false): BeachBackdrop {
 		oceanMaterial,
 		foamMaterial,
 		sunMaterial,
+		oceanTime,
 	};
 }
 
@@ -1231,7 +1242,7 @@ export function mountDeskStill(canvas: HTMLCanvasElement, onReady?: () => void):
 		beach.skyMaterial.uniforms.bottomColor.value.set(darkTheme ? 0x2a1c18 : 0xe7d0a0);
 		beach.oceanMaterial.color.set(darkTheme ? 0x1d4f6e : 0x2f9bc4);
 		beach.sandMaterial.color.set(darkTheme ? 0xb08962 : 0xffffff);
-		beach.foamMaterial.opacity = darkTheme ? 0.12 : 0.22;
+		beach.foamMaterial.opacity = darkTheme ? 0.06 : 0.1;
 		beach.sunMaterial.color.set(darkTheme ? 0xffb068 : 0xfff6c8);
 		beach.sun.position.set(darkTheme ? 7.2 : 8.2, darkTheme ? 4.6 : 6.1, darkTheme ? -18 : -16);
 		still.traverse((child) => {
@@ -1301,26 +1312,6 @@ export function mountDeskStill(canvas: HTMLCanvasElement, onReady?: () => void):
 		camera.updateProjectionMatrix();
 	}
 
-	function displaceOcean(elapsed: number): void {
-		const oceanPos = beach.ocean.geometry.attributes.position;
-		const oceanArr = oceanPos.array as Float32Array;
-
-		for (let i = 0; i < oceanPos.count; i += 1) {
-			const ix = i * 3;
-			const x = beach.oceanBase[ix];
-			const y = beach.oceanBase[ix + 1];
-			oceanArr[ix + 2] =
-				Math.sin(x * 0.12 + elapsed * 0.85) * 0.18 +
-				Math.sin(y * 0.16 + elapsed * 0.6) * 0.1 +
-				Math.sin((x + y) * 0.08 + elapsed * 1.15) * 0.05;
-		}
-
-		oceanPos.needsUpdate = true;
-		beach.ocean.geometry.computeVertexNormals();
-	}
-
-	displaceOcean(0.8);
-
 	function animate(time: number): void {
 		if (reducedMotion) {
 			beach.sun.lookAt(camera.position);
@@ -1328,14 +1319,12 @@ export function mountDeskStill(canvas: HTMLCanvasElement, onReady?: () => void):
 		}
 
 		const elapsed = time / 1000;
+		beach.oceanTime.value = elapsed;
+		beach.sun.lookAt(camera.position);
 
 		if (idleMotion) {
 			still.rotation.y = Math.sin(elapsed * 0.32) * 0.22;
 		}
-
-		displaceOcean(elapsed);
-		beach.foamMaterial.opacity = (darkTheme ? 0.12 : 0.22) * (0.8 + Math.sin(elapsed * 0.7) * 0.2);
-		beach.sun.lookAt(camera.position);
 
 		for (const leaf of leaves) {
 			const base = leaf.userData.baseRotation as THREE.Euler | undefined;
