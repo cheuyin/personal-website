@@ -189,6 +189,23 @@ html[data-theme='dark'] {
 		margin: 1.5rem 0 0;
 		width: 100%;
 		height: 18.75rem;
+		background:
+			linear-gradient(
+				180deg,
+				rgb(110 183 224 / 42%) 0%,
+				rgb(243 224 176 / 48%) 52%,
+				rgb(226 196 138 / 40%) 100%
+			);
+	}
+
+	html[data-theme='dark'] .desk-still {
+		background:
+			linear-gradient(
+				180deg,
+				rgb(26 39 64 / 70%) 0%,
+				rgb(196 122 74 / 38%) 52%,
+				rgb(42 28 24 / 55%) 100%
+			);
 	}
 
 	.desk-still-canvas {

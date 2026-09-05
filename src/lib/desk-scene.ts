@@ -930,6 +930,153 @@ function buildStillLife(lowPower = false): THREE.Group {
 	return still;
 }
 
+function sandTexture(size: number): THREE.CanvasTexture {
+	return canvasTexture(size, size, (ctx) => {
+		const image = ctx.createImageData(size, size);
+
+		for (let y = 0; y < size; y += 1) {
+			for (let x = 0; x < size; x += 1) {
+				const grain = hash2(x * 0.37, y * 0.41);
+				const ripple = Math.sin(x * 0.09 + y * 0.025) * 0.04;
+				const t = Math.min(1, Math.max(0, 0.55 + (grain - 0.5) * 0.28 + ripple));
+				const i = (y * size + x) * 4;
+				image.data[i] = 168 + t * 64;
+				image.data[i + 1] = 138 + t * 58;
+				image.data[i + 2] = 88 + t * 42;
+				image.data[i + 3] = 255;
+			}
+		}
+
+		ctx.putImageData(image, 0, 0);
+	});
+}
+
+type BeachBackdrop = {
+	group: THREE.Group;
+	ocean: THREE.Mesh;
+	oceanBase: Float32Array;
+	foam: THREE.Mesh;
+	sun: THREE.Mesh;
+	skyMaterial: THREE.ShaderMaterial;
+	sandMaterial: THREE.MeshStandardMaterial;
+	oceanMaterial: THREE.MeshStandardMaterial;
+	foamMaterial: THREE.MeshBasicMaterial;
+	sunMaterial: THREE.MeshBasicMaterial;
+};
+
+function makeBeachBackdrop(lowPower = false): BeachBackdrop {
+	const group = new THREE.Group();
+	group.userData.part = 'beach';
+
+	const skyMaterial = new THREE.ShaderMaterial({
+		side: THREE.BackSide,
+		depthWrite: false,
+		toneMapped: false,
+		uniforms: {
+			topColor: { value: new THREE.Color(0x4aa3d6) },
+			horizonColor: { value: new THREE.Color(0xdcecf4) },
+			bottomColor: { value: new THREE.Color(0xe7d0a0) },
+		},
+		vertexShader: `
+			varying vec3 vWorldPosition;
+			void main() {
+				vec4 world = modelMatrix * vec4(position, 1.0);
+				vWorldPosition = world.xyz;
+				gl_Position = projectionMatrix * viewMatrix * world;
+			}
+		`,
+		fragmentShader: `
+			varying vec3 vWorldPosition;
+			uniform vec3 topColor;
+			uniform vec3 horizonColor;
+			uniform vec3 bottomColor;
+			void main() {
+				float h = normalize(vWorldPosition).y;
+				vec3 sky = mix(horizonColor, topColor, smoothstep(0.02, 0.62, h));
+				vec3 ground = mix(horizonColor, bottomColor, smoothstep(0.0, 0.28, -h));
+				gl_FragColor = vec4(h > 0.0 ? sky : ground, 1.0);
+			}
+		`,
+	});
+	const sky = new THREE.Mesh(new THREE.SphereGeometry(42, 24, 16), skyMaterial);
+	group.add(sky);
+
+	const sandMap = sandTexture(lowPower ? 128 : 256);
+	sandMap.wrapS = sandMap.wrapT = THREE.RepeatWrapping;
+	sandMap.repeat.set(6, 4);
+	const sandMaterial = new THREE.MeshStandardMaterial({
+		map: sandMap,
+		roughness: 0.96,
+		metalness: 0,
+		envMapIntensity: 0.08,
+	});
+	const sandSegments = lowPower ? 12 : 22;
+	const sandGeo = new THREE.PlaneGeometry(38, 28, sandSegments, sandSegments);
+	const sandPos = sandGeo.attributes.position;
+
+	for (let i = 0; i < sandPos.count; i += 1) {
+		const x = sandPos.getX(i);
+		const y = sandPos.getY(i);
+		sandPos.setZ(i, Math.sin(x * 0.18) * 0.08 + Math.sin(y * 0.22 + x * 0.05) * 0.05 - Math.max(0, -y - 8) * 0.04);
+	}
+
+	sandGeo.computeVertexNormals();
+	const sand = new THREE.Mesh(sandGeo, sandMaterial);
+	sand.rotation.x = -Math.PI / 2;
+	sand.position.set(0, -0.02, 1.4);
+	sand.receiveShadow = true;
+	group.add(sand);
+
+	const oceanMaterial = new THREE.MeshStandardMaterial({
+		color: 0x2f9bc4,
+		roughness: 0.22,
+		metalness: 0.08,
+		envMapIntensity: 0.55,
+	});
+	const oceanSegX = lowPower ? 20 : 40;
+	const oceanSegY = lowPower ? 12 : 24;
+	const oceanGeo = new THREE.PlaneGeometry(90, 46, oceanSegX, oceanSegY);
+	const ocean = new THREE.Mesh(oceanGeo, oceanMaterial);
+	ocean.rotation.x = -Math.PI / 2;
+	ocean.position.set(0, -0.18, -18);
+	const oceanBase = Float32Array.from(oceanGeo.attributes.position.array);
+	group.add(ocean);
+
+	const foamMaterial = new THREE.MeshBasicMaterial({
+		color: 0xf7f4ea,
+		transparent: true,
+		opacity: 0.22,
+		depthWrite: false,
+		toneMapped: false,
+	});
+	const foam = new THREE.Mesh(new THREE.PlaneGeometry(90, 3.2), foamMaterial);
+	foam.rotation.x = -Math.PI / 2;
+	foam.position.set(0, -0.12, -6.4);
+	group.add(foam);
+
+	const sunMaterial = new THREE.MeshBasicMaterial({
+		color: 0xfff1b8,
+		toneMapped: false,
+		fog: false,
+	});
+	const sun = new THREE.Mesh(new THREE.CircleGeometry(1.7, 24), sunMaterial);
+	sun.position.set(8.2, 6.1, -16);
+	group.add(sun);
+
+	return {
+		group,
+		ocean,
+		oceanBase,
+		foam,
+		sun,
+		skyMaterial,
+		sandMaterial,
+		oceanMaterial,
+		foamMaterial,
+		sunMaterial,
+	};
+}
+
 const EASTER_EGG_CLICK_PX = 10;
 
 function easterEggRootFrom(object: THREE.Object3D): THREE.Object3D | undefined {
@@ -971,27 +1118,28 @@ export function mountDeskStill(canvas: HTMLCanvasElement, onReady?: () => void):
 	}
 
 	renderer.setPixelRatio(Math.min(window.devicePixelRatio, pixelRatioCap));
-	renderer.setClearColor(0x000000, 0);
+	renderer.setClearColor(0x4aa3d6, 1);
 	renderer.outputColorSpace = THREE.SRGBColorSpace;
 	renderer.toneMapping = THREE.ACESFilmicToneMapping;
-	renderer.toneMappingExposure = 0.92;
+	renderer.toneMappingExposure = 0.96;
 	renderer.shadowMap.enabled = true;
 	renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
 	const scene = new THREE.Scene();
-	const camera = new THREE.PerspectiveCamera(32, 1, 0.1, 40);
+	const camera = new THREE.PerspectiveCamera(32, 1, 0.1, 90);
 	camera.position.set(0.12, 3.45, 8.45);
+	scene.fog = new THREE.Fog(0xdcecf4, 22, 58);
 
 	const pmrem = new THREE.PMREMGenerator(renderer);
 	const environment = pmrem.fromScene(new RoomEnvironment(), 0.08);
 	scene.environment = environment.texture;
 	scene.environmentIntensity = 0.46;
 
-	const hemi = new THREE.HemisphereLight(PAPER, MUTED, 0.7);
+	const hemi = new THREE.HemisphereLight(0xd7eef8, 0xd7c08a, 0.78);
 	scene.add(hemi);
 
-	const key = new THREE.DirectionalLight(0xfff3df, 1.16);
-	key.position.set(1.1, 10.8, 3.6);
+	const key = new THREE.DirectionalLight(0xfff1c8, 1.22);
+	key.position.set(4.2, 11.2, 2.4);
 	key.castShadow = true;
 	key.shadow.mapSize.set(shadowSize, shadowSize);
 	key.shadow.bias = -0.00012;
@@ -1006,18 +1154,16 @@ export function mountDeskStill(canvas: HTMLCanvasElement, onReady?: () => void):
 	key.shadow.camera.updateProjectionMatrix();
 	scene.add(key);
 
-	const fill = new THREE.DirectionalLight(ACCENT, 0.16);
+	const fill = new THREE.DirectionalLight(0x7fb7c9, 0.2);
 	fill.position.set(-3.4, 2.2, 1.6);
 	scene.add(fill);
 
-	const rim = new THREE.DirectionalLight(0xe8efe4, 0.44);
+	const rim = new THREE.DirectionalLight(0xffe4b3, 0.42);
 	rim.position.set(-1.4, 4.2, -5.8);
 	scene.add(rim);
 
-	const floor = new THREE.Mesh(new THREE.PlaneGeometry(18, 18), new THREE.ShadowMaterial({ opacity: 0.14 }));
-	floor.rotation.x = -Math.PI / 2;
-	floor.receiveShadow = true;
-	scene.add(floor);
+	const beach = makeBeachBackdrop(lowPower);
+	scene.add(beach.group);
 
 	const still = buildStillLife(lowPower);
 	scene.add(still);
@@ -1068,12 +1214,26 @@ export function mountDeskStill(canvas: HTMLCanvasElement, onReady?: () => void):
 
 	function syncLights(): void {
 		darkTheme = isDarkTheme();
-		hemi.intensity = darkTheme ? 0.62 : 0.7;
-		key.intensity = darkTheme ? 1.24 : 1.16;
-		fill.intensity = darkTheme ? 0.36 : 0.16;
-		rim.intensity = darkTheme ? 0.72 : 0.44;
-		floor.material.opacity = darkTheme ? 0.28 : 0.14;
-		scene.environmentIntensity = darkTheme ? 0.48 : 0.46;
+		hemi.color.set(darkTheme ? 0xffc4a0 : 0xd7eef8);
+		hemi.groundColor.set(darkTheme ? 0x6a4a32 : 0xd7c08a);
+		hemi.intensity = darkTheme ? 0.7 : 0.78;
+		key.color.set(darkTheme ? 0xffc48a : 0xfff1c8);
+		key.intensity = darkTheme ? 1.18 : 1.22;
+		fill.color.set(darkTheme ? 0x4f6f88 : 0x7fb7c9);
+		fill.intensity = darkTheme ? 0.32 : 0.2;
+		rim.color.set(darkTheme ? 0xff9a62 : 0xffe4b3);
+		rim.intensity = darkTheme ? 0.58 : 0.42;
+		scene.environmentIntensity = darkTheme ? 0.42 : 0.5;
+		scene.fog?.color.set(darkTheme ? 0xc47a4a : 0xdcecf4);
+		renderer.setClearColor(darkTheme ? 0x1a2740 : 0x4aa3d6, 1);
+		beach.skyMaterial.uniforms.topColor.value.set(darkTheme ? 0x1a2740 : 0x4aa3d6);
+		beach.skyMaterial.uniforms.horizonColor.value.set(darkTheme ? 0xc47a4a : 0xdcecf4);
+		beach.skyMaterial.uniforms.bottomColor.value.set(darkTheme ? 0x2a1c18 : 0xe7d0a0);
+		beach.oceanMaterial.color.set(darkTheme ? 0x1d4f6e : 0x2f9bc4);
+		beach.sandMaterial.color.set(darkTheme ? 0xb08962 : 0xffffff);
+		beach.foamMaterial.opacity = darkTheme ? 0.12 : 0.22;
+		beach.sunMaterial.color.set(darkTheme ? 0xffb068 : 0xfff6c8);
+		beach.sun.position.set(darkTheme ? 7.2 : 8.2, darkTheme ? 4.6 : 6.1, darkTheme ? -18 : -16);
 		still.traverse((child) => {
 			if (!(child instanceof THREE.Mesh)) {
 				return;
@@ -1141,8 +1301,29 @@ export function mountDeskStill(canvas: HTMLCanvasElement, onReady?: () => void):
 		camera.updateProjectionMatrix();
 	}
 
+	function displaceOcean(elapsed: number): void {
+		const oceanPos = beach.ocean.geometry.attributes.position;
+		const oceanArr = oceanPos.array as Float32Array;
+
+		for (let i = 0; i < oceanPos.count; i += 1) {
+			const ix = i * 3;
+			const x = beach.oceanBase[ix];
+			const y = beach.oceanBase[ix + 1];
+			oceanArr[ix + 2] =
+				Math.sin(x * 0.12 + elapsed * 0.85) * 0.18 +
+				Math.sin(y * 0.16 + elapsed * 0.6) * 0.1 +
+				Math.sin((x + y) * 0.08 + elapsed * 1.15) * 0.05;
+		}
+
+		oceanPos.needsUpdate = true;
+		beach.ocean.geometry.computeVertexNormals();
+	}
+
+	displaceOcean(0.8);
+
 	function animate(time: number): void {
 		if (reducedMotion) {
+			beach.sun.lookAt(camera.position);
 			return;
 		}
 
@@ -1151,6 +1332,10 @@ export function mountDeskStill(canvas: HTMLCanvasElement, onReady?: () => void):
 		if (idleMotion) {
 			still.rotation.y = Math.sin(elapsed * 0.32) * 0.22;
 		}
+
+		displaceOcean(elapsed);
+		beach.foamMaterial.opacity = (darkTheme ? 0.12 : 0.22) * (0.8 + Math.sin(elapsed * 0.7) * 0.2);
+		beach.sun.lookAt(camera.position);
 
 		for (const leaf of leaves) {
 			const base = leaf.userData.baseRotation as THREE.Euler | undefined;
