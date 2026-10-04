@@ -1,29 +1,18 @@
 ---
 import Base from '../layouts/Base.astro';
 import DeskStill from '../components/DeskStill.astro';
-import NameFlip from '../components/NameFlip.astro';
-import { intro, site } from '../data/site';
+import { site } from '../data/site';
 ---
 
 <Base description={site.description}>
 	<h1 class="m-0 text-[clamp(1.7rem,calc(0.85rem+4.6vw),2.75rem)] font-semibold leading-[1.15] tracking-[-0.02em]">
-		<NameFlip />
+		{site.name}
 	</h1>
 	<p class="mt-4 m-0 text-[0.9375rem] text-muted">{site.role}</p>
+	<p class="mt-6 m-0">{site.description}</p>
+	<div class="mt-4 flex flex-wrap gap-x-6 gap-y-2">
+		<a class="link" href="/writing">Writing <span aria-hidden="true">→</span></a>
+		<a class="link" href="/projects">Projects <span aria-hidden="true">→</span></a>
+	</div>
 	<DeskStill />
-	{
-		intro.map((paragraph) => (
-			<p class="mt-6 m-0">
-				{paragraph.map((segment) =>
-					segment.href ? (
-						<a class="link" href={segment.href} target="_blank" rel="noreferrer">
-							{segment.text}
-						</a>
-					) : (
-						segment.text
-					),
-				)}
-			</p>
-		))
-	}
 </Base>
