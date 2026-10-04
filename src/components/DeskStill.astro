@@ -6,16 +6,36 @@
 		class="desk-still-canvas opacity-0 transition-opacity duration-500"
 		tabindex="0"
 		role="img"
-		aria-label="A small 3D still life of a laptop, plant, coffee cup, and pen on a wooden table, sitting on a sunny beach with ocean behind it. Drag or use the arrow keys to turn it. The coffee cup opens the grounds page."
+		aria-label="An interactive coastal workspace: a 14-inch MacBook Pro, forest-green LEUCHTTURM1917 notebook, silver Parker Jotter, coffee mug, and rubber plant on an oak desk. Drag or use the arrow keys to look around. Space pauses the animation, Home resets the view, and Enter opens the coffee mug."
 	></canvas>
 
-	<!-- Clean Loading Spinner -->
+	<div class="desk-scene-toolbar" data-desk-toolbar>
+		<span class="desk-scene-label" data-desk-label>Drag to look around</span>
+		<div class="flex items-center gap-1">
+			<button class="desk-scene-control" type="button" aria-label="Reset scene view" title="Reset view" data-desk-reset disabled>
+				<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+					<path d="M4 10a8 8 0 1 1 1.8 7.3M4 4v6h6" stroke-linecap="round" stroke-linejoin="round"></path>
+				</svg>
+			</button>
+			<button class="desk-scene-control" type="button" aria-label="Pause scene animation" aria-pressed="false" title="Pause animation" data-desk-pause disabled>
+				<svg class="desk-icon-pause" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+					<path d="M8 5v14M16 5v14" stroke-linecap="round"></path>
+				</svg>
+				<svg class="desk-icon-play" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+					<path d="m9 5 10 7-10 7Z" stroke-linejoin="round"></path>
+				</svg>
+			</button>
+		</div>
+	</div>
+	<a class="desk-mug-keyboard-link sr-only focus:not-sr-only" href="/grounds">Open the coffee mug</a>
+
+	<!-- Loading and lightweight fallback share the same composition. -->
 	<div
 		class="absolute inset-0 flex flex-col items-center justify-center gap-3 transition-opacity duration-300 pointer-events-none"
 		data-desk-spinner
 	>
 		<div class="h-6 w-6 animate-spin rounded-full border-2 border-rule border-t-accent"></div>
-		<span class="font-mono text-[0.75rem] text-faint">Loading 3D workspace...</span>
+		<span class="font-mono text-[0.75rem] text-muted">Setting the desk...</span>
 	</div>
 
 	<!-- Fallback for slow connection / weak devices / WebGL failure -->
@@ -62,9 +82,10 @@
 				<path d="M122 46 C122 43 125 42 125 39" stroke-width="1" class="stroke-accent/50" />
 			</g>
 
-			<!-- Pen & Notebook -->
-			<line x1="134" y1="65" x2="146" y2="65" stroke-width="2" class="stroke-rule" />
-			<line x1="137" y1="61" x2="144" y2="69" stroke-width="1.5" class="stroke-accent" />
+			<!-- Green notebook and silver Jotter -->
+			<path d="m131 58 16-2 3 14-16 2Z" class="fill-accent/70 stroke-accent" />
+			<path d="m145 57 3 14M132 70l17-2" class="stroke-paper/70" />
+			<path d="m135 62 11 5" stroke-width="2" class="stroke-muted" />
 		</svg>
 
 		<p class="mt-2.5 m-0 font-mono text-[0.8125rem] text-muted" data-fallback-reason>
@@ -131,6 +152,7 @@
 		const spinner = root.querySelector<HTMLElement>('[data-desk-spinner]');
 		const fallback = root.querySelector<HTMLElement>('[data-desk-fallback]');
 		const loadBtn = root.querySelector<HTMLButtonElement>('[data-desk-load-btn]');
+		const toolbar = root.querySelector<HTMLElement>('[data-desk-toolbar]');
 
 		if (!canvas || !spinner || !fallback) continue;
 
@@ -140,6 +162,7 @@
 		let loadAttempt = 0;
 
 		function showFallback(reasonMessage?: string) {
+			loadAttempt++;
 			if (timeoutId) clearTimeout(timeoutId);
 			disposeScene?.();
 			disposeScene = undefined;
@@ -148,6 +171,7 @@
 				spinner.classList.add('hidden');
 			}, 300);
 			canvas.classList.add('hidden');
+			toolbar?.classList.add('hidden');
 			fallback.classList.remove('hidden');
 			fallback.classList.add('flex');
 			if (reasonMessage) {
@@ -167,6 +191,9 @@
 			fallback.classList.add('hidden');
 			fallback.classList.remove('flex');
 			canvas.classList.remove('hidden');
+			canvas.classList.remove('opacity-100');
+			canvas.classList.add('opacity-0');
+			toolbar?.classList.add('hidden');
 			spinner.classList.remove('hidden');
 			spinner.classList.remove('opacity-0');
 
@@ -179,12 +206,13 @@
 			try {
 				const { mountDeskStill } = await import('../lib/desk-scene');
 				if (attempt !== loadAttempt) return;
-				if (timeoutId) clearTimeout(timeoutId);
 
 				disposeScene = mountDeskStill(canvas, () => {
 					if (attempt !== loadAttempt) return;
 
 					isLoaded = true;
+					if (timeoutId) clearTimeout(timeoutId);
+					toolbar?.classList.remove('hidden');
 					canvas.classList.remove('opacity-0');
 					canvas.classList.add('opacity-100');
 					spinner.classList.add('opacity-0');
@@ -193,7 +221,7 @@
 					}, 350);
 				});
 			} catch {
-				showFallback('Could not load 3D scene on this device.');
+				if (attempt === loadAttempt) showFallback('Could not load 3D scene on this device.');
 			}
 		}
 
@@ -211,7 +239,15 @@
 			});
 		}
 
-		window.addEventListener('pagehide', () => disposeScene?.(), { once: true });
+		window.addEventListener('pagehide', () => {
+			loadAttempt++;
+			if (timeoutId) clearTimeout(timeoutId);
+			disposeScene?.();
+			disposeScene = undefined;
+		});
+		window.addEventListener('pageshow', (event) => {
+			if (event.persisted && isLoaded) loadScene();
+		});
 
 		const mug = fallback.querySelector('[data-desk-mug]');
 		if (mug instanceof SVGElement) {

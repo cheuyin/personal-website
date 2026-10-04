@@ -188,13 +188,13 @@ html[data-theme='dark'] {
 	.desk-still {
 		margin: 1.5rem 0 0;
 		width: 100%;
-		height: 18.75rem;
+		height: 20rem;
 		background:
 			linear-gradient(
 				180deg,
-				rgb(110 183 224 / 42%) 0%,
-				rgb(243 224 176 / 48%) 52%,
-				rgb(226 196 138 / 40%) 100%
+				#9fc9dd 0%,
+				#e5e9df 48%,
+				#cfbc9a 100%
 			);
 	}
 
@@ -202,9 +202,9 @@ html[data-theme='dark'] {
 		background:
 			linear-gradient(
 				180deg,
-				rgb(26 39 64 / 70%) 0%,
-				rgb(196 122 74 / 38%) 52%,
-				rgb(42 28 24 / 55%) 100%
+				#273b58 0%,
+				#c69882 48%,
+				#847464 100%
 			);
 	}
 
@@ -213,7 +213,7 @@ html[data-theme='dark'] {
 		width: 100%;
 		height: 100%;
 		cursor: grab;
-		touch-action: none;
+		touch-action: pan-y pinch-zoom;
 	}
 
 	.desk-still-canvas:focus-visible {
@@ -221,9 +221,78 @@ html[data-theme='dark'] {
 		outline-offset: 2px;
 	}
 
+	.desk-scene-toolbar {
+		position: absolute;
+		inset: auto 0.75rem 0.65rem;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.5rem;
+		pointer-events: none;
+		color: #384438;
+	}
+
+	.desk-scene-toolbar.hidden {
+		display: none;
+	}
+
+	.desk-scene-label {
+		padding: 0.3rem 0.6rem;
+		border-radius: 0.5rem;
+		background: rgb(241 240 232 / 78%);
+		font-family: var(--font-mono);
+		font-size: 0.625rem;
+		line-height: 1.5;
+		backdrop-filter: blur(8px);
+	}
+
+	.desk-scene-control {
+		display: inline-flex;
+		width: 2.75rem;
+		height: 2.75rem;
+		align-items: center;
+		justify-content: center;
+		border: 1px solid rgb(61 75 55 / 12%);
+		border-radius: 50%;
+		background: rgb(241 240 232 / 78%);
+		color: inherit;
+		pointer-events: auto;
+		cursor: pointer;
+		backdrop-filter: blur(8px);
+	}
+
+	.desk-scene-control:hover {
+		background: #f1f0e8;
+	}
+
+	.desk-scene-control:disabled {
+		opacity: 0.4;
+		cursor: default;
+	}
+
+	.desk-scene-control svg {
+		width: 1rem;
+		height: 1rem;
+	}
+
+	.desk-scene-control[aria-pressed='true'] .desk-icon-pause,
+	.desk-scene-control[aria-pressed='false'] .desk-icon-play {
+		display: none;
+	}
+
+	.desk-mug-keyboard-link:focus {
+		position: absolute;
+		inset: auto auto 4rem 1rem;
+		padding: 0.4rem 0.8rem;
+		border-radius: 0.4rem;
+		background: var(--paper);
+		color: var(--accent);
+		font-size: 0.875rem;
+	}
+
 	@media (min-width: 640px) {
 		.desk-still {
-			height: 23rem;
+			height: 26rem;
 		}
 	}
 
@@ -429,6 +498,14 @@ html[data-theme='dark'] {
 }
 
 @media (prefers-reduced-motion: reduce) {
+	.desk-still .animate-spin {
+		animation: none;
+	}
+
+	.desk-still-canvas {
+		transition: none;
+	}
+
 	.link,
 	.prose-site a {
 		transition: none;
